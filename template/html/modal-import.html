@@ -1,0 +1,131 @@
+<!-- Import Modal -->
+<div class="modal-overlay" id="importModal">
+    <div class="modal-container modal-lg">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <h2 class="modal-title">Import Excel Data</h2>
+                <p class="modal-subtitle">Upload a new Excel file to refresh dashboard data</p>
+            </div>
+            <div class="modal-header-right">
+                <button class="modal-close" aria-label="Close">&#10005;</button>
+            </div>
+        </div>
+        <div class="modal-body" id="importModalBody">
+            <!-- Initial state: Dropzone -->
+            <div id="importDropzoneSection">
+                <div class="import-dropzone" id="importDropzone">
+                    <svg class="import-dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <div class="import-dropzone-title">Drop your Excel file here</div>
+                    <div class="import-dropzone-subtitle">or <a id="importBrowseLink">browse</a> to select a file (.xlsx)</div>
+                    <input type="file" class="import-dropzone-file" id="importFileInput" accept=".xlsx,.xls">
+                </div>
+            </div>
+
+            <!-- File selected state -->
+            <div id="importFileSection" style="display: none;">
+                <div class="import-file-info" id="importFileInfo">
+                    <div class="import-file-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                            <polyline points="14,2 14,8 20,8"/>
+                        </svg>
+                    </div>
+                    <div class="import-file-details">
+                        <div class="import-file-name" id="importFileName">filename.xlsx</div>
+                        <div class="import-file-size" id="importFileSize">0 KB</div>
+                    </div>
+                    <button class="import-file-remove" id="importFileRemove">Remove</button>
+                </div>
+            </div>
+
+            <!-- Validation results -->
+            <div id="importValidationSection" style="display: none;">
+                <div class="import-validation">
+                    <div class="import-validation-header">
+                        <div class="import-validation-icon" id="importValidationIcon">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20,6 9,17 4,12"/>
+                            </svg>
+                        </div>
+                        <span class="import-validation-title" id="importValidationTitle">Validation Results</span>
+                    </div>
+                    <div class="import-validation-body">
+                        <!-- Column summary -->
+                        <div class="import-columns" id="importColumnsSection">
+                            <div class="import-column-group">
+                                <div class="import-column-group-title">Required Columns</div>
+                                <div class="import-column-list" id="importRequiredCols"></div>
+                            </div>
+                            <div class="import-column-group">
+                                <div class="import-column-group-title">Optional Columns</div>
+                                <div class="import-column-list" id="importOptionalCols"></div>
+                            </div>
+                            <div class="import-column-group">
+                                <div class="import-column-group-title">Unknown Columns</div>
+                                <div class="import-column-list" id="importUnknownCols"></div>
+                            </div>
+                        </div>
+
+                        <!-- Issues list -->
+                        <ul class="import-issues" id="importIssuesList"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data preview -->
+            <div id="importPreviewSection" style="display: none;">
+                <div class="import-preview">
+                    <div class="import-preview-header">
+                        <span class="import-preview-title">Data Preview</span>
+                        <span class="import-preview-count" id="importPreviewCount">Showing first 5 rows</span>
+                    </div>
+                    <div class="import-preview-table-wrapper">
+                        <table class="import-preview-table">
+                            <thead id="importPreviewHead"></thead>
+                            <tbody id="importPreviewBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Processing state -->
+            <div id="importProcessingSection" style="display: none;">
+                <div class="import-processing">
+                    <div class="import-processing-spinner"></div>
+                    <div class="import-processing-text" id="importProcessingText">Processing file...</div>
+                </div>
+            </div>
+
+            <!-- Success state -->
+            <div id="importSuccessSection" style="display: none;">
+                <div class="import-success">
+                    <div class="import-success-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20,6 9,17 4,12"/>
+                        </svg>
+                    </div>
+                    <div class="import-success-title">Data Imported Successfully</div>
+                    <div class="import-success-subtitle" id="importSuccessSubtitle">0 records loaded</div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer space-between">
+            <span class="kpi-modal-footer-info" id="importFooterInfo">Select an Excel file with Cost Code Detail Report data</span>
+            <div style="display: flex; gap: 8px;">
+                <button class="modal-btn" id="importCancelBtn">Cancel</button>
+                <button class="modal-btn success" id="importSubmitBtn" disabled>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    Import Data
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -162,11 +162,32 @@ async function handlePassword() {
         setupTrendControls();
         setupDrill();
         setupComparisonListeners();
+        setupModals();
         updateDashboard();
     } catch (e) {
         console.error('Decryption failed:', e);
         error.style.display = 'block';
         btn.disabled = false; btn.textContent = 'Unlock Dashboard';
+    }
+}
+
+function setupModals() {
+    // Initialize the modal manager
+    ModalManager.init();
+
+    // Initialize chart expand modal
+    if (typeof ChartExpandModal !== 'undefined') {
+        ChartExpandModal.init();
+    }
+
+    // Initialize KPI detail modal
+    if (typeof KPIDetailModal !== 'undefined') {
+        KPIDetailModal.init();
+    }
+
+    // Initialize import modal
+    if (typeof ImportModal !== 'undefined') {
+        ImportModal.init();
     }
 }
 

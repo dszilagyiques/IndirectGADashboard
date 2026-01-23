@@ -34,18 +34,26 @@ KEY_LENGTH = 32
 # CSS files in load order
 CSS_ORDER = [
     'variables', 'base', 'password', 'layout', 'multiselect',
-    'kpi', 'charts', 'drillthrough', 'comparison', 'responsive'
+    'kpi', 'charts',
+    'modal', 'modal-chart', 'modal-kpi', 'modal-import',
+    'drillthrough', 'comparison', 'responsive'
 ]
 
 # HTML partials in body order
-HTML_ORDER = ['password', 'header', 'filters', 'kpi', 'charts', 'drillthrough']
+HTML_ORDER = [
+    'password', 'header', 'filters', 'kpi', 'charts',
+    'drillthrough',
+    'modal-chart', 'modal-kpi', 'modal-import'
+]
 
 # JS files in load order
 JS_ORDER = [
     'config', 'state', 'utils', 'crypto', 'filters', 'kpi', 'insights',
     'charts/monthly-trend', 'charts/department', 'charts/division',
     'charts/category', 'charts/doctype', 'charts/costtype',
-    'drillthrough', 'multiselect', 'comparison', 'init'
+    'drillthrough', 'multiselect', 'comparison',
+    'modal-base', 'modal-chart', 'modal-kpi', 'modal-import',
+    'init'
 ]
 
 
@@ -284,6 +292,9 @@ def assemble_template(template_dir: Path) -> str:
     charts_html = body_parts[4] if len(body_parts) > 4 else ''
     drillthrough_html = body_parts[5] if len(body_parts) > 5 else ''
 
+    # Collect all modal HTML (indices 6+)
+    modals_html = '\n\n    '.join(body_parts[6:]) if len(body_parts) > 6 else ''
+
     # 6. Assemble final HTML
     html_template = f'''<!DOCTYPE html>
 <html lang="en">
@@ -312,6 +323,8 @@ def assemble_template(template_dir: Path) -> str:
     </div>
 
     {drillthrough_html}
+
+    {modals_html}
 
     <script>
         // === ENCRYPTED PAYLOAD ===

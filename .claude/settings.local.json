@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(python main.py:*)",
-      "Bash(head:*)"
+      "Bash(head:*)",
+      "Bash(python build_dashboard.py:*)"
     ]
   }
 }

@@ -1,0 +1,418 @@
+/* === IMPORT MODAL === */
+
+/* Import button in header */
+.header-import-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.header-import-btn:hover {
+    border-color: var(--accent-blue);
+    color: var(--text-primary);
+}
+
+.header-import-btn svg {
+    flex-shrink: 0;
+}
+
+/* Import modal layout */
+#importModal .modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Dropzone */
+.import-dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    background: var(--bg-base);
+    border: 2px dashed var(--border-default);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.import-dropzone:hover,
+.import-dropzone.dragover {
+    border-color: var(--accent-blue);
+    background: rgba(88, 166, 255, 0.05);
+}
+
+.import-dropzone.has-file {
+    border-color: var(--accent-green);
+    border-style: solid;
+    background: rgba(63, 185, 80, 0.05);
+}
+
+.import-dropzone-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 12px;
+    color: var(--text-muted);
+    transition: color 0.2s;
+}
+
+.import-dropzone:hover .import-dropzone-icon,
+.import-dropzone.dragover .import-dropzone-icon {
+    color: var(--accent-blue);
+}
+
+.import-dropzone.has-file .import-dropzone-icon {
+    color: var(--accent-green);
+}
+
+.import-dropzone-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.import-dropzone-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.import-dropzone-subtitle a {
+    color: var(--accent-blue);
+    cursor: pointer;
+}
+
+.import-dropzone-file {
+    display: none;
+}
+
+/* File info when selected */
+.import-file-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+}
+
+.import-file-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(63, 185, 80, 0.15);
+    border-radius: 6px;
+    color: var(--accent-green);
+}
+
+.import-file-details {
+    flex: 1;
+}
+
+.import-file-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.import-file-size {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.import-file-remove {
+    padding: 4px 8px;
+    background: transparent;
+    border: 1px solid var(--border-default);
+    border-radius: 4px;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.import-file-remove:hover {
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+}
+
+/* Validation results */
+.import-validation {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.import-validation-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--bg-base);
+    border-bottom: 1px solid var(--border-default);
+}
+
+.import-validation-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.import-validation-icon.success {
+    background: rgba(63, 185, 80, 0.15);
+    color: var(--accent-green);
+}
+
+.import-validation-icon.error {
+    background: rgba(248, 81, 73, 0.15);
+    color: var(--accent-red);
+}
+
+.import-validation-icon.warning {
+    background: rgba(210, 153, 34, 0.15);
+    color: var(--accent-orange);
+}
+
+.import-validation-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.import-validation-body {
+    padding: 16px;
+}
+
+/* Column summary */
+.import-columns {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.import-column-group {
+    background: var(--bg-base);
+    border-radius: 6px;
+    padding: 10px 12px;
+}
+
+.import-column-group-title {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+
+.import-column-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.import-column-tag {
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.65rem;
+    font-weight: 500;
+}
+
+.import-column-tag.required {
+    background: rgba(63, 185, 80, 0.15);
+    color: var(--accent-green);
+}
+
+.import-column-tag.optional {
+    background: rgba(88, 166, 255, 0.15);
+    color: var(--accent-blue);
+}
+
+.import-column-tag.unknown {
+    background: rgba(139, 148, 158, 0.15);
+    color: var(--text-muted);
+}
+
+.import-column-tag.missing {
+    background: rgba(248, 81, 73, 0.15);
+    color: var(--accent-red);
+}
+
+/* Error/Warning list */
+.import-issues {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.import-issue {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-muted);
+    font-size: 0.8rem;
+}
+
+.import-issue:last-child {
+    border-bottom: none;
+}
+
+.import-issue-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.import-issue-icon.error { color: var(--accent-red); }
+.import-issue-icon.warning { color: var(--accent-orange); }
+
+.import-issue-text {
+    color: var(--text-secondary);
+}
+
+/* Data preview */
+.import-preview {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.import-preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--bg-base);
+    border-bottom: 1px solid var(--border-default);
+}
+
+.import-preview-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.import-preview-count {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.import-preview-table-wrapper {
+    max-height: 200px;
+    overflow: auto;
+}
+
+.import-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.7rem;
+}
+
+.import-preview-table th {
+    background: var(--bg-elevated);
+    padding: 8px 10px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+}
+
+.import-preview-table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border-muted);
+    white-space: nowrap;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.import-preview-table tbody tr:hover {
+    background: rgba(88, 166, 255, 0.05);
+}
+
+/* Processing state */
+.import-processing {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    gap: 16px;
+}
+
+.import-processing-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border-default);
+    border-top-color: var(--accent-blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.import-processing-text {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+/* Success state */
+.import-success {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    gap: 16px;
+    text-align: center;
+}
+
+.import-success-icon {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(63, 185, 80, 0.15);
+    border-radius: 50%;
+    color: var(--accent-green);
+}
+
+.import-success-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.import-success-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .import-columns {
+        grid-template-columns: 1fr;
+    }
+
+    .import-dropzone {
+        padding: 30px 16px;
+    }
+}

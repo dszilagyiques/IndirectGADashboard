@@ -1,6 +1,6 @@
 <!-- KPI Row -->
 <section class="kpi-row" id="kpiRow">
-    <div class="kpi-card blue">
+    <div class="kpi-card blue clickable" data-kpi="gross">
         <div class="kpi-label">Gross Costs</div>
         <div class="kpi-value-row">
             <div class="kpi-value blue" id="kpiGross">$0</div>
@@ -8,8 +8,9 @@
         </div>
         <canvas class="kpi-sparkline" id="sparklineGross" width="120" height="24"></canvas>
         <div class="kpi-subtext" id="kpiGrossRecords">0 records</div>
+        <span class="kpi-click-hint">Click for details</span>
     </div>
-    <div class="kpi-card green">
+    <div class="kpi-card green clickable" data-kpi="allocations">
         <div class="kpi-label">Allocations</div>
         <div class="kpi-value-row">
             <div class="kpi-value green" id="kpiAllocations">$0</div>
@@ -17,8 +18,9 @@
         </div>
         <canvas class="kpi-sparkline" id="sparklineAlloc" width="120" height="24"></canvas>
         <div class="kpi-subtext" id="kpiAllocRecords">0 records</div>
+        <span class="kpi-click-hint">Click for details</span>
     </div>
-    <div class="kpi-card orange">
+    <div class="kpi-card orange clickable" data-kpi="net">
         <div class="kpi-label">Net Costs</div>
         <div class="kpi-net-layout">
             <div class="kpi-net-main">
@@ -37,13 +39,15 @@
                 <div class="ring-label">Recovery</div>
             </div>
         </div>
+        <span class="kpi-click-hint">Click for details</span>
     </div>
-    <div class="kpi-card purple">
+    <div class="kpi-card purple clickable" data-kpi="ratio">
         <div class="kpi-label">G&A vs Indirect</div>
         <div class="kpi-value purple" id="kpiRatio">0% / 0%</div>
         <div class="kpi-subtext">GA / IN split</div>
+        <span class="kpi-click-hint">Click for details</span>
     </div>
-    <div class="kpi-card cyan">
+    <div class="kpi-card cyan clickable" data-kpi="monthly">
         <div class="kpi-label">Monthly Avg</div>
         <div class="kpi-value-row">
             <div class="kpi-value blue" id="kpiMonthlyAvg">$0</div>
@@ -51,6 +55,7 @@
         </div>
         <canvas class="kpi-sparkline" id="sparklineMonthly" width="120" height="24"></canvas>
         <div class="kpi-subtext" id="kpiMonthCount">0 months</div>
+        <span class="kpi-click-hint">Click for details</span>
     </div>
 </section>
 

@@ -18,14 +18,23 @@
     background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-elevated) 100%);
     border-bottom: 1px solid var(--border-default);
     padding: 8px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1800px;
+    margin: 0 auto;
 }
 
 .header-brand {
-    max-width: 1800px;
-    margin: 0 auto;
     display: flex;
     align-items: center;
     gap: 12px;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .brand-title {
