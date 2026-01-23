@@ -1,0 +1,508 @@
+{
+  "charts": [
+    {
+      "file": "10 Oct25 SAFETY and QC COST REPORT - old.xlsx",
+      "sheet": "Charts",
+      "index": 0,
+      "type": "BarChart (col) [clustered]",
+      "title": "Craft Training - Gas Transmission",
+      "series_count": 1,
+      "series_names": [
+        "'Chart Data'!$A$9"
+      ]
+    },
+    {
+      "file": "10 Oct25 SAFETY and QC COST REPORT - old.xlsx",
+      "sheet": "Charts",
+      "index": 1,
+      "type": "BarChart (col) [clustered]",
+      "title": "Craft Training - Civil",
+      "series_count": 1,
+      "series_names": [
+        "'Chart Data'!$A$14"
+      ]
+    },
+    {
+      "file": "10 Oct25 SAFETY and QC COST REPORT - old.xlsx",
+      "sheet": "Charts",
+      "index": 2,
+      "type": "BarChart (col) [clustered]",
+      "title": "Craft Training - So. Cal",
+      "series_count": 1,
+      "series_names": [
+        "'Chart Data'!$A$19"
+      ]
+    },
+    {
+      "file": "10 Oct25 SAFETY and QC COST REPORT - old.xlsx",
+      "sheet": "Charts",
+      "index": 3,
+      "type": "BarChart (col) [clustered]",
+      "title": "Total",
+      "series_count": 1,
+      "series_names": [
+        "'Chart Data'!$A$39"
+      ]
+    },
+    {
+      "file": "10 Oct25 SAFETY and QC COST REPORT - old.xlsx",
+      "sheet": "Charts",
+      "index": 4,
+      "type": "BarChart (col) [clustered]",
+      "title": "Total",
+      "series_count": 1,
+      "series_names": [
+        "'Chart Data'!$A$49"
+      ]
+    },
+    {
+      "file": "10 Oct25 SAFETY and QC COST REPORT - old.xlsx",
+      "sheet": "Charts",
+      "index": 5,
+      "type": "BarChart (col) [clustered]",
+      "title": "Total",
+      "series_count": 1,
+      "series_names": [
+        "'Chart Data'!$A$55"
+      ]
+    },
+    {
+      "file": "10 Oct25 SAFETY and QC COST REPORT - old.xlsx",
+      "sheet": "Charts",
+      "index": 6,
+      "type": "BarChart (col) [clustered]",
+      "title": "Total",
+      "series_count": 1,
+      "series_names": [
+        "'Chart Data'!$A$60"
+      ]
+    },
+    {
+      "file": "10 Oct25 SAFETY and QC COST REPORT - old.xlsx",
+      "sheet": "Charts",
+      "index": 7,
+      "type": "BarChart (col) [clustered]",
+      "title": "Total",
+      "series_count": 1,
+      "series_names": [
+        "'Chart Data'!$A$66"
+      ]
+    },
+    {
+      "file": "10 Oct25 SAFETY and QC COST REPORT - old.xlsx",
+      "sheet": "Charts",
+      "index": 8,
+      "type": "BarChart (col) [clustered]",
+      "title": "Total",
+      "series_count": 1,
+      "series_names": [
+        "'Chart Data'!$A$81"
+      ]
+    },
+    {
+      "file": "10 Oct25 SAFETY and QC COST REPORT - old.xlsx",
+      "sheet": "Charts",
+      "index": 9,
+      "type": "BarChart (col) [clustered]",
+      "title": "OQ Costs - Gas Transmission",
+      "series_count": 1,
+      "series_names": [
+        "'Chart Data'!$A$86"
+      ]
+    },
+    {
+      "file": "10 Oct25 SAFETY and QC COST REPORT - old.xlsx",
+      "sheet": "Charts",
+      "index": 10,
+      "type": "BarChart (col) [clustered]",
+      "title": "OQ Costs - So. Cal",
+      "series_count": 1,
+      "series_names": [
+        "'Chart Data'!$A$97"
+      ]
+    },
+    {
+      "file": "Copy of 10 Oct25 Divisional OH report (002).xlsx",
+      "sheet": "trend",
+      "index": 0,
+      "type": "BarChart (col) [clustered]",
+      "title": "<openpyxl.chart.title.Title object>\nParameters:\ntx=<openpyxl.chart.text.Text object>\nParameters:\nstrRef=None, rich=<openpyxl.chart.text.RichText object>\nParameters:\nbodyPr=<openpyxl.drawing.text.RichTextProperties object>\nParameters:\nrot=None, spcFirstLastPara=None, vertOverflow=None, horzOverflow=None, vert=None, wrap=None, lIns=None, tIns=None, rIns=None, bIns=None, numCol=None, spcCol=None, rtlCol=None, fromWordArt=None, anchor=None, anchorCtr=None, forceAA=None, upright=None, compatLnSpc=None, prstTxWarp=None, scene3d=None, noAutofit=False, normAutofit=False, spAutoFit=False, lstStyle=None, p=[<openpyxl.drawing.text.Paragraph object>\nParameters:\npPr=None, r=[<openpyxl.drawing.text.RegularTextRun object>\nParameters:\nrPr=None, t=''], br=None, fld=None, endParaRPr=None], layout=None, overlay=False, spPr=<openpyxl.chart.shapes.GraphicalProperties object>\nParameters:\nbwMode=None, xfrm=None, prstGeom=None, noFill=True, solidFill=None, gradFill=None, pattFill=None, ln=<openpyxl.drawing.line.LineProperties object>\nParameters:\nw=None, cap=None, cmpd=None, algn=None, noFill=True, solidFill=None, gradFill=None, pattFill=None, prstDash='solid', custDash=None, round=False, bevel=False, miter=None, headEnd=None, tailEnd=None, scene3d=None, sp3d=None, txPr=<openpyxl.chart.text.RichText object>\nParameters:\nbodyPr=<openpyxl.drawing.text.RichTextProperties object>\nParameters:\nrot=0, spcFirstLastPara=True, vertOverflow='ellipsis', horzOverflow=None, vert='horz', wrap='square', lIns=None, tIns=None, rIns=None, bIns=None, numCol=None, spcCol=None, rtlCol=None, fromWordArt=None, anchor='ctr', anchorCtr=True, forceAA=None, upright=None, compatLnSpc=None, prstTxWarp=None, scene3d=None, noAutofit=False, normAutofit=False, spAutoFit=False, lstStyle=<openpyxl.drawing.text.ListStyle object>\nParameters:\ndefPPr=None, lvl1pPr=None, lvl2pPr=None, lvl3pPr=None, lvl4pPr=None, lvl5pPr=None, lvl6pPr=None, lvl7pPr=None, lvl8pPr=None, lvl9pPr=None, p=[<openpyxl.drawing.text.Paragraph object>\nParameters:\npPr=<openpyxl.drawing.text.ParagraphProperties object>\nParameters:\nmarL=None, marR=None, lvl=None, indent=None, algn=None, defTabSz=None, rtl=None, eaLnBrk=None, fontAlgn=None, latinLnBrk=None, hangingPunct=None, lnSpc=None, spcBef=None, spcAft=None, tabLst=None, defRPr=<openpyxl.drawing.text.CharacterProperties object>\nParameters:\nkumimoji=None, lang=None, altLang=None, sz=1400.0, b=False, i=False, u=None, strike='noStrike', kern=1200, cap=None, spc=0, normalizeH=None, baseline=0, noProof=None, dirty=None, err=None, smtClean=None, smtId=None, bmk=None, ln=None, noFill=False, solidFill=<openpyxl.drawing.colors.ColorChoice object>\nParameters:\nscrgbClr=None, srgbClr=None, hslClr=None, sysClr=None, schemeClr=<openpyxl.drawing.colors.SchemeColor object>\nParameters:\nval='tx1', tint=None, shade=None, comp=None, inv=None, gray=None, alpha=None, alphaOff=None, alphaMod=None, hue=None, hueOff=None, hueMod=None, sat=None, satOff=None, satMod=None, lum=None, lumMod=65000, lumOff=35000, red=None, redOff=None, redMod=None, green=None, greenOff=None, greenMod=None, blue=None, blueOff=None, blueMod=None, gamma=None, invGamma=None, prstClr=None, gradFill=None, blipFill=None, pattFill=None, grpFill=False, effectLst=None, effectDag=None, highlight=None, uLnTx=False, uLn=None, uFillTx=False, uFill=False, latin=<openpyxl.drawing.text.Font object>\nParameters:\ntypeface='+mn-lt', panose=None, pitchFamily=None, charset=None, ea=<openpyxl.drawing.text.Font object>\nParameters:\ntypeface='+mn-ea', panose=None, pitchFamily=None, charset=None, cs=<openpyxl.drawing.text.Font object>\nParameters:\ntypeface='+mn-cs', panose=None, pitchFamily=None, charset=None, sym=None, hlinkClick=None, hlinkMouseOver=None, rtl=None, buClrTx=False, buClr=None, buSzTx=False, buSzPct=None, buSzPts=None, buFontTx=False, buFont=None, buNone=False, buAutoNum=False, buChar=None, buBlip=None, r=[<openpyxl.drawing.text.RegularTextRun object>\nParameters:\nrPr=None, t=''], br=None, fld=None, endParaRPr=<openpyxl.drawing.text.CharacterProperties object>\nParameters:\nkumimoji=None, lang='en-US', altLang=None, sz=None, b=None, i=None, u=None, strike=None, kern=None, cap=None, spc=None, normalizeH=None, baseline=None, noProof=None, dirty=None, err=None, smtClean=None, smtId=None, bmk=None, ln=None, noFill=False, solidFill=None, gradFill=None, blipFill=None, pattFill=None, grpFill=False, effectLst=None, effectDag=None, highlight=None, uLnTx=False, uLn=None, uFillTx=False, uFill=False, latin=None, ea=None, cs=None, sym=None, hlinkClick=None, hlinkMouseOver=None, rtl=None]",
+      "series_count": 1,
+      "series_names": [
+        "Sheet1!$A$5"
+      ]
+    },
+    {
+      "file": "Copy of 10 Oct25 Divisional OH report (002).xlsx",
+      "sheet": "trend",
+      "index": 1,
+      "type": "BarChart (col) [clustered]",
+      "title": "<openpyxl.chart.title.Title object>\nParameters:\ntx=<openpyxl.chart.text.Text object>\nParameters:\nstrRef=None, rich=<openpyxl.chart.text.RichText object>\nParameters:\nbodyPr=<openpyxl.drawing.text.RichTextProperties object>\nParameters:\nrot=None, spcFirstLastPara=None, vertOverflow=None, horzOverflow=None, vert=None, wrap=None, lIns=None, tIns=None, rIns=None, bIns=None, numCol=None, spcCol=None, rtlCol=None, fromWordArt=None, anchor=None, anchorCtr=None, forceAA=None, upright=None, compatLnSpc=None, prstTxWarp=None, scene3d=None, noAutofit=False, normAutofit=False, spAutoFit=False, lstStyle=None, p=[<openpyxl.drawing.text.Paragraph object>\nParameters:\npPr=None, r=[<openpyxl.drawing.text.RegularTextRun object>\nParameters:\nrPr=None, t=''], br=None, fld=None, endParaRPr=None], layout=None, overlay=False, spPr=<openpyxl.chart.shapes.GraphicalProperties object>\nParameters:\nbwMode=None, xfrm=None, prstGeom=None, noFill=True, solidFill=None, gradFill=None, pattFill=None, ln=<openpyxl.drawing.line.LineProperties object>\nParameters:\nw=None, cap=None, cmpd=None, algn=None, noFill=True, solidFill=None, gradFill=None, pattFill=None, prstDash='solid', custDash=None, round=False, bevel=False, miter=None, headEnd=None, tailEnd=None, scene3d=None, sp3d=None, txPr=<openpyxl.chart.text.RichText object>\nParameters:\nbodyPr=<openpyxl.drawing.text.RichTextProperties object>\nParameters:\nrot=0, spcFirstLastPara=True, vertOverflow='ellipsis', horzOverflow=None, vert='horz', wrap='square', lIns=None, tIns=None, rIns=None, bIns=None, numCol=None, spcCol=None, rtlCol=None, fromWordArt=None, anchor='ctr', anchorCtr=True, forceAA=None, upright=None, compatLnSpc=None, prstTxWarp=None, scene3d=None, noAutofit=False, normAutofit=False, spAutoFit=False, lstStyle=<openpyxl.drawing.text.ListStyle object>\nParameters:\ndefPPr=None, lvl1pPr=None, lvl2pPr=None, lvl3pPr=None, lvl4pPr=None, lvl5pPr=None, lvl6pPr=None, lvl7pPr=None, lvl8pPr=None, lvl9pPr=None, p=[<openpyxl.drawing.text.Paragraph object>\nParameters:\npPr=<openpyxl.drawing.text.ParagraphProperties object>\nParameters:\nmarL=None, marR=None, lvl=None, indent=None, algn=None, defTabSz=None, rtl=None, eaLnBrk=None, fontAlgn=None, latinLnBrk=None, hangingPunct=None, lnSpc=None, spcBef=None, spcAft=None, tabLst=None, defRPr=<openpyxl.drawing.text.CharacterProperties object>\nParameters:\nkumimoji=None, lang=None, altLang=None, sz=1400.0, b=False, i=False, u=None, strike='noStrike', kern=1200, cap=None, spc=0, normalizeH=None, baseline=0, noProof=None, dirty=None, err=None, smtClean=None, smtId=None, bmk=None, ln=None, noFill=False, solidFill=<openpyxl.drawing.colors.ColorChoice object>\nParameters:\nscrgbClr=None, srgbClr=None, hslClr=None, sysClr=None, schemeClr=<openpyxl.drawing.colors.SchemeColor object>\nParameters:\nval='tx1', tint=None, shade=None, comp=None, inv=None, gray=None, alpha=None, alphaOff=None, alphaMod=None, hue=None, hueOff=None, hueMod=None, sat=None, satOff=None, satMod=None, lum=None, lumMod=65000, lumOff=35000, red=None, redOff=None, redMod=None, green=None, greenOff=None, greenMod=None, blue=None, blueOff=None, blueMod=None, gamma=None, invGamma=None, prstClr=None, gradFill=None, blipFill=None, pattFill=None, grpFill=False, effectLst=None, effectDag=None, highlight=None, uLnTx=False, uLn=None, uFillTx=False, uFill=False, latin=<openpyxl.drawing.text.Font object>\nParameters:\ntypeface='+mn-lt', panose=None, pitchFamily=None, charset=None, ea=<openpyxl.drawing.text.Font object>\nParameters:\ntypeface='+mn-ea', panose=None, pitchFamily=None, charset=None, cs=<openpyxl.drawing.text.Font object>\nParameters:\ntypeface='+mn-cs', panose=None, pitchFamily=None, charset=None, sym=None, hlinkClick=None, hlinkMouseOver=None, rtl=None, buClrTx=False, buClr=None, buSzTx=False, buSzPct=None, buSzPts=None, buFontTx=False, buFont=None, buNone=False, buAutoNum=False, buChar=None, buBlip=None, r=[<openpyxl.drawing.text.RegularTextRun object>\nParameters:\nrPr=None, t=''], br=None, fld=None, endParaRPr=<openpyxl.drawing.text.CharacterProperties object>\nParameters:\nkumimoji=None, lang='en-US', altLang=None, sz=None, b=None, i=None, u=None, strike=None, kern=None, cap=None, spc=None, normalizeH=None, baseline=None, noProof=None, dirty=None, err=None, smtClean=None, smtId=None, bmk=None, ln=None, noFill=False, solidFill=None, gradFill=None, blipFill=None, pattFill=None, grpFill=False, effectLst=None, effectDag=None, highlight=None, uLnTx=False, uLn=None, uFillTx=False, uFill=False, latin=None, ea=None, cs=None, sym=None, hlinkClick=None, hlinkMouseOver=None, rtl=None]",
+      "series_count": 1,
+      "series_names": [
+        "Sheet1!$A$4"
+      ]
+    },
+    {
+      "file": "Copy of 10 Oct25 Divisional OH report (002).xlsx",
+      "sheet": "trend",
+      "index": 2,
+      "type": "BarChart (col) [clustered]",
+      "title": "<openpyxl.chart.title.Title object>\nParameters:\ntx=<openpyxl.chart.text.Text object>\nParameters:\nstrRef=None, rich=<openpyxl.chart.text.RichText object>\nParameters:\nbodyPr=<openpyxl.drawing.text.RichTextProperties object>\nParameters:\nrot=None, spcFirstLastPara=None, vertOverflow=None, horzOverflow=None, vert=None, wrap=None, lIns=None, tIns=None, rIns=None, bIns=None, numCol=None, spcCol=None, rtlCol=None, fromWordArt=None, anchor=None, anchorCtr=None, forceAA=None, upright=None, compatLnSpc=None, prstTxWarp=None, scene3d=None, noAutofit=False, normAutofit=False, spAutoFit=False, lstStyle=None, p=[<openpyxl.drawing.text.Paragraph object>\nParameters:\npPr=None, r=[<openpyxl.drawing.text.RegularTextRun object>\nParameters:\nrPr=None, t=''], br=None, fld=None, endParaRPr=None], layout=None, overlay=False, spPr=<openpyxl.chart.shapes.GraphicalProperties object>\nParameters:\nbwMode=None, xfrm=None, prstGeom=None, noFill=True, solidFill=None, gradFill=None, pattFill=None, ln=<openpyxl.drawing.line.LineProperties object>\nParameters:\nw=None, cap=None, cmpd=None, algn=None, noFill=True, solidFill=None, gradFill=None, pattFill=None, prstDash='solid', custDash=None, round=False, bevel=False, miter=None, headEnd=None, tailEnd=None, scene3d=None, sp3d=None, txPr=<openpyxl.chart.text.RichText object>\nParameters:\nbodyPr=<openpyxl.drawing.text.RichTextProperties object>\nParameters:\nrot=0, spcFirstLastPara=True, vertOverflow='ellipsis', horzOverflow=None, vert='horz', wrap='square', lIns=None, tIns=None, rIns=None, bIns=None, numCol=None, spcCol=None, rtlCol=None, fromWordArt=None, anchor='ctr', anchorCtr=True, forceAA=None, upright=None, compatLnSpc=None, prstTxWarp=None, scene3d=None, noAutofit=False, normAutofit=False, spAutoFit=False, lstStyle=<openpyxl.drawing.text.ListStyle object>\nParameters:\ndefPPr=None, lvl1pPr=None, lvl2pPr=None, lvl3pPr=None, lvl4pPr=None, lvl5pPr=None, lvl6pPr=None, lvl7pPr=None, lvl8pPr=None, lvl9pPr=None, p=[<openpyxl.drawing.text.Paragraph object>\nParameters:\npPr=<openpyxl.drawing.text.ParagraphProperties object>\nParameters:\nmarL=None, marR=None, lvl=None, indent=None, algn=None, defTabSz=None, rtl=None, eaLnBrk=None, fontAlgn=None, latinLnBrk=None, hangingPunct=None, lnSpc=None, spcBef=None, spcAft=None, tabLst=None, defRPr=<openpyxl.drawing.text.CharacterProperties object>\nParameters:\nkumimoji=None, lang=None, altLang=None, sz=1400.0, b=False, i=False, u=None, strike='noStrike', kern=1200, cap=None, spc=0, normalizeH=None, baseline=0, noProof=None, dirty=None, err=None, smtClean=None, smtId=None, bmk=None, ln=None, noFill=False, solidFill=<openpyxl.drawing.colors.ColorChoice object>\nParameters:\nscrgbClr=None, srgbClr=None, hslClr=None, sysClr=None, schemeClr=<openpyxl.drawing.colors.SchemeColor object>\nParameters:\nval='tx1', tint=None, shade=None, comp=None, inv=None, gray=None, alpha=None, alphaOff=None, alphaMod=None, hue=None, hueOff=None, hueMod=None, sat=None, satOff=None, satMod=None, lum=None, lumMod=65000, lumOff=35000, red=None, redOff=None, redMod=None, green=None, greenOff=None, greenMod=None, blue=None, blueOff=None, blueMod=None, gamma=None, invGamma=None, prstClr=None, gradFill=None, blipFill=None, pattFill=None, grpFill=False, effectLst=None, effectDag=None, highlight=None, uLnTx=False, uLn=None, uFillTx=False, uFill=False, latin=<openpyxl.drawing.text.Font object>\nParameters:\ntypeface='+mn-lt', panose=None, pitchFamily=None, charset=None, ea=<openpyxl.drawing.text.Font object>\nParameters:\ntypeface='+mn-ea', panose=None, pitchFamily=None, charset=None, cs=<openpyxl.drawing.text.Font object>\nParameters:\ntypeface='+mn-cs', panose=None, pitchFamily=None, charset=None, sym=None, hlinkClick=None, hlinkMouseOver=None, rtl=None, buClrTx=False, buClr=None, buSzTx=False, buSzPct=None, buSzPts=None, buFontTx=False, buFont=None, buNone=False, buAutoNum=False, buChar=None, buBlip=None, r=[<openpyxl.drawing.text.RegularTextRun object>\nParameters:\nrPr=None, t=''], br=None, fld=None, endParaRPr=<openpyxl.drawing.text.CharacterProperties object>\nParameters:\nkumimoji=None, lang='en-US', altLang=None, sz=None, b=None, i=None, u=None, strike=None, kern=None, cap=None, spc=None, normalizeH=None, baseline=None, noProof=None, dirty=None, err=None, smtClean=None, smtId=None, bmk=None, ln=None, noFill=False, solidFill=None, gradFill=None, blipFill=None, pattFill=None, grpFill=False, effectLst=None, effectDag=None, highlight=None, uLnTx=False, uLn=None, uFillTx=False, uFill=False, latin=None, ea=None, cs=None, sym=None, hlinkClick=None, hlinkMouseOver=None, rtl=None]",
+      "series_count": 1,
+      "series_names": [
+        "Sheet1!$A$6"
+      ]
+    },
+    {
+      "file": "Copy of 10 Oct25 Divisional OH report (002).xlsx",
+      "sheet": "trend",
+      "index": 3,
+      "type": "BarChart (col) [clustered]",
+      "title": "No. Cal Gas",
+      "series_count": 1,
+      "series_names": [
+        "Sheet1!$A$7"
+      ]
+    },
+    {
+      "file": "Copy of 10 Oct25 Divisional OH report (002).xlsx",
+      "sheet": "trend",
+      "index": 4,
+      "type": "BarChart (col) [clustered]",
+      "title": "<openpyxl.chart.title.Title object>\nParameters:\ntx=<openpyxl.chart.text.Text object>\nParameters:\nstrRef=None, rich=<openpyxl.chart.text.RichText object>\nParameters:\nbodyPr=<openpyxl.drawing.text.RichTextProperties object>\nParameters:\nrot=None, spcFirstLastPara=None, vertOverflow=None, horzOverflow=None, vert=None, wrap=None, lIns=None, tIns=None, rIns=None, bIns=None, numCol=None, spcCol=None, rtlCol=None, fromWordArt=None, anchor=None, anchorCtr=None, forceAA=None, upright=None, compatLnSpc=None, prstTxWarp=None, scene3d=None, noAutofit=False, normAutofit=False, spAutoFit=False, lstStyle=None, p=[<openpyxl.drawing.text.Paragraph object>\nParameters:\npPr=None, r=[<openpyxl.drawing.text.RegularTextRun object>\nParameters:\nrPr=None, t=''], br=None, fld=None, endParaRPr=None], layout=None, overlay=False, spPr=<openpyxl.chart.shapes.GraphicalProperties object>\nParameters:\nbwMode=None, xfrm=None, prstGeom=None, noFill=True, solidFill=None, gradFill=None, pattFill=None, ln=<openpyxl.drawing.line.LineProperties object>\nParameters:\nw=None, cap=None, cmpd=None, algn=None, noFill=True, solidFill=None, gradFill=None, pattFill=None, prstDash='solid', custDash=None, round=False, bevel=False, miter=None, headEnd=None, tailEnd=None, scene3d=None, sp3d=None, txPr=<openpyxl.chart.text.RichText object>\nParameters:\nbodyPr=<openpyxl.drawing.text.RichTextProperties object>\nParameters:\nrot=0, spcFirstLastPara=True, vertOverflow='ellipsis', horzOverflow=None, vert='horz', wrap='square', lIns=None, tIns=None, rIns=None, bIns=None, numCol=None, spcCol=None, rtlCol=None, fromWordArt=None, anchor='ctr', anchorCtr=True, forceAA=None, upright=None, compatLnSpc=None, prstTxWarp=None, scene3d=None, noAutofit=False, normAutofit=False, spAutoFit=False, lstStyle=<openpyxl.drawing.text.ListStyle object>\nParameters:\ndefPPr=None, lvl1pPr=None, lvl2pPr=None, lvl3pPr=None, lvl4pPr=None, lvl5pPr=None, lvl6pPr=None, lvl7pPr=None, lvl8pPr=None, lvl9pPr=None, p=[<openpyxl.drawing.text.Paragraph object>\nParameters:\npPr=<openpyxl.drawing.text.ParagraphProperties object>\nParameters:\nmarL=None, marR=None, lvl=None, indent=None, algn=None, defTabSz=None, rtl=None, eaLnBrk=None, fontAlgn=None, latinLnBrk=None, hangingPunct=None, lnSpc=None, spcBef=None, spcAft=None, tabLst=None, defRPr=<openpyxl.drawing.text.CharacterProperties object>\nParameters:\nkumimoji=None, lang=None, altLang=None, sz=1400.0, b=False, i=False, u=None, strike='noStrike', kern=1200, cap=None, spc=0, normalizeH=None, baseline=0, noProof=None, dirty=None, err=None, smtClean=None, smtId=None, bmk=None, ln=None, noFill=False, solidFill=<openpyxl.drawing.colors.ColorChoice object>\nParameters:\nscrgbClr=None, srgbClr=None, hslClr=None, sysClr=None, schemeClr=<openpyxl.drawing.colors.SchemeColor object>\nParameters:\nval='tx1', tint=None, shade=None, comp=None, inv=None, gray=None, alpha=None, alphaOff=None, alphaMod=None, hue=None, hueOff=None, hueMod=None, sat=None, satOff=None, satMod=None, lum=None, lumMod=65000, lumOff=35000, red=None, redOff=None, redMod=None, green=None, greenOff=None, greenMod=None, blue=None, blueOff=None, blueMod=None, gamma=None, invGamma=None, prstClr=None, gradFill=None, blipFill=None, pattFill=None, grpFill=False, effectLst=None, effectDag=None, highlight=None, uLnTx=False, uLn=None, uFillTx=False, uFill=False, latin=<openpyxl.drawing.text.Font object>\nParameters:\ntypeface='+mn-lt', panose=None, pitchFamily=None, charset=None, ea=<openpyxl.drawing.text.Font object>\nParameters:\ntypeface='+mn-ea', panose=None, pitchFamily=None, charset=None, cs=<openpyxl.drawing.text.Font object>\nParameters:\ntypeface='+mn-cs', panose=None, pitchFamily=None, charset=None, sym=None, hlinkClick=None, hlinkMouseOver=None, rtl=None, buClrTx=False, buClr=None, buSzTx=False, buSzPct=None, buSzPts=None, buFontTx=False, buFont=None, buNone=False, buAutoNum=False, buChar=None, buBlip=None, r=[<openpyxl.drawing.text.RegularTextRun object>\nParameters:\nrPr=None, t=''], br=None, fld=None, endParaRPr=<openpyxl.drawing.text.CharacterProperties object>\nParameters:\nkumimoji=None, lang='en-US', altLang=None, sz=None, b=None, i=None, u=None, strike=None, kern=None, cap=None, spc=None, normalizeH=None, baseline=None, noProof=None, dirty=None, err=None, smtClean=None, smtId=None, bmk=None, ln=None, noFill=False, solidFill=None, gradFill=None, blipFill=None, pattFill=None, grpFill=False, effectLst=None, effectDag=None, highlight=None, uLnTx=False, uLn=None, uFillTx=False, uFill=False, latin=None, ea=None, cs=None, sym=None, hlinkClick=None, hlinkMouseOver=None, rtl=None]",
+      "series_count": 1,
+      "series_names": [
+        "Sheet1!$A$8"
+      ]
+    },
+    {
+      "file": "Copy of 10 Oct25 Divisional OH report (002).xlsx",
+      "sheet": "trend",
+      "index": 5,
+      "type": "BarChart (col) [clustered]",
+      "title": "<openpyxl.chart.title.Title object>\nParameters:\ntx=<openpyxl.chart.text.Text object>\nParameters:\nstrRef=None, rich=<openpyxl.chart.text.RichText object>\nParameters:\nbodyPr=<openpyxl.drawing.text.RichTextProperties object>\nParameters:\nrot=None, spcFirstLastPara=None, vertOverflow=None, horzOverflow=None, vert=None, wrap=None, lIns=None, tIns=None, rIns=None, bIns=None, numCol=None, spcCol=None, rtlCol=None, fromWordArt=None, anchor=None, anchorCtr=None, forceAA=None, upright=None, compatLnSpc=None, prstTxWarp=None, scene3d=None, noAutofit=False, normAutofit=False, spAutoFit=False, lstStyle=None, p=[<openpyxl.drawing.text.Paragraph object>\nParameters:\npPr=None, r=[<openpyxl.drawing.text.RegularTextRun object>\nParameters:\nrPr=None, t=''], br=None, fld=None, endParaRPr=None], layout=None, overlay=False, spPr=<openpyxl.chart.shapes.GraphicalProperties object>\nParameters:\nbwMode=None, xfrm=None, prstGeom=None, noFill=True, solidFill=None, gradFill=None, pattFill=None, ln=<openpyxl.drawing.line.LineProperties object>\nParameters:\nw=None, cap=None, cmpd=None, algn=None, noFill=True, solidFill=None, gradFill=None, pattFill=None, prstDash='solid', custDash=None, round=False, bevel=False, miter=None, headEnd=None, tailEnd=None, scene3d=None, sp3d=None, txPr=<openpyxl.chart.text.RichText object>\nParameters:\nbodyPr=<openpyxl.drawing.text.RichTextProperties object>\nParameters:\nrot=0, spcFirstLastPara=True, vertOverflow='ellipsis', horzOverflow=None, vert='horz', wrap='square', lIns=None, tIns=None, rIns=None, bIns=None, numCol=None, spcCol=None, rtlCol=None, fromWordArt=None, anchor='ctr', anchorCtr=True, forceAA=None, upright=None, compatLnSpc=None, prstTxWarp=None, scene3d=None, noAutofit=False, normAutofit=False, spAutoFit=False, lstStyle=<openpyxl.drawing.text.ListStyle object>\nParameters:\ndefPPr=None, lvl1pPr=None, lvl2pPr=None, lvl3pPr=None, lvl4pPr=None, lvl5pPr=None, lvl6pPr=None, lvl7pPr=None, lvl8pPr=None, lvl9pPr=None, p=[<openpyxl.drawing.text.Paragraph object>\nParameters:\npPr=<openpyxl.drawing.text.ParagraphProperties object>\nParameters:\nmarL=None, marR=None, lvl=None, indent=None, algn=None, defTabSz=None, rtl=None, eaLnBrk=None, fontAlgn=None, latinLnBrk=None, hangingPunct=None, lnSpc=None, spcBef=None, spcAft=None, tabLst=None, defRPr=<openpyxl.drawing.text.CharacterProperties object>\nParameters:\nkumimoji=None, lang=None, altLang=None, sz=1400.0, b=False, i=False, u=None, strike='noStrike', kern=1200, cap=None, spc=0, normalizeH=None, baseline=0, noProof=None, dirty=None, err=None, smtClean=None, smtId=None, bmk=None, ln=None, noFill=False, solidFill=<openpyxl.drawing.colors.ColorChoice object>\nParameters:\nscrgbClr=None, srgbClr=None, hslClr=None, sysClr=None, schemeClr=<openpyxl.drawing.colors.SchemeColor object>\nParameters:\nval='tx1', tint=None, shade=None, comp=None, inv=None, gray=None, alpha=None, alphaOff=None, alphaMod=None, hue=None, hueOff=None, hueMod=None, sat=None, satOff=None, satMod=None, lum=None, lumMod=65000, lumOff=35000, red=None, redOff=None, redMod=None, green=None, greenOff=None, greenMod=None, blue=None, blueOff=None, blueMod=None, gamma=None, invGamma=None, prstClr=None, gradFill=None, blipFill=None, pattFill=None, grpFill=False, effectLst=None, effectDag=None, highlight=None, uLnTx=False, uLn=None, uFillTx=False, uFill=False, latin=<openpyxl.drawing.text.Font object>\nParameters:\ntypeface='+mn-lt', panose=None, pitchFamily=None, charset=None, ea=<openpyxl.drawing.text.Font object>\nParameters:\ntypeface='+mn-ea', panose=None, pitchFamily=None, charset=None, cs=<openpyxl.drawing.text.Font object>\nParameters:\ntypeface='+mn-cs', panose=None, pitchFamily=None, charset=None, sym=None, hlinkClick=None, hlinkMouseOver=None, rtl=None, buClrTx=False, buClr=None, buSzTx=False, buSzPct=None, buSzPts=None, buFontTx=False, buFont=None, buNone=False, buAutoNum=False, buChar=None, buBlip=None, r=[<openpyxl.drawing.text.RegularTextRun object>\nParameters:\nrPr=None, t=''], br=None, fld=None, endParaRPr=<openpyxl.drawing.text.CharacterProperties object>\nParameters:\nkumimoji=None, lang='en-US', altLang=None, sz=None, b=None, i=None, u=None, strike=None, kern=None, cap=None, spc=None, normalizeH=None, baseline=None, noProof=None, dirty=None, err=None, smtClean=None, smtId=None, bmk=None, ln=None, noFill=False, solidFill=None, gradFill=None, blipFill=None, pattFill=None, grpFill=False, effectLst=None, effectDag=None, highlight=None, uLnTx=False, uLn=None, uFillTx=False, uFill=False, latin=None, ea=None, cs=None, sym=None, hlinkClick=None, hlinkMouseOver=None, rtl=None]",
+      "series_count": 1,
+      "series_names": [
+        "Sheet1!$A$9"
+      ]
+    },
+    {
+      "file": "Copy of 10 Oct25 Divisional OH report (002).xlsx",
+      "sheet": "trend",
+      "index": 6,
+      "type": "BarChart (col) [clustered]",
+      "title": "<openpyxl.chart.title.Title object>\nParameters:\ntx=<openpyxl.chart.text.Text object>\nParameters:\nstrRef=None, rich=<openpyxl.chart.text.RichText object>\nParameters:\nbodyPr=<openpyxl.drawing.text.RichTextProperties object>\nParameters:\nrot=None, spcFirstLastPara=None, vertOverflow=None, horzOverflow=None, vert=None, wrap=None, lIns=None, tIns=None, rIns=None, bIns=None, numCol=None, spcCol=None, rtlCol=None, fromWordArt=None, anchor=None, anchorCtr=None, forceAA=None, upright=None, compatLnSpc=None, prstTxWarp=None, scene3d=None, noAutofit=False, normAutofit=False, spAutoFit=False, lstStyle=None, p=[<openpyxl.drawing.text.Paragraph object>\nParameters:\npPr=None, r=[<openpyxl.drawing.text.RegularTextRun object>\nParameters:\nrPr=None, t=''], br=None, fld=None, endParaRPr=None], layout=None, overlay=False, spPr=<openpyxl.chart.shapes.GraphicalProperties object>\nParameters:\nbwMode=None, xfrm=None, prstGeom=None, noFill=True, solidFill=None, gradFill=None, pattFill=None, ln=<openpyxl.drawing.line.LineProperties object>\nParameters:\nw=None, cap=None, cmpd=None, algn=None, noFill=True, solidFill=None, gradFill=None, pattFill=None, prstDash='solid', custDash=None, round=False, bevel=False, miter=None, headEnd=None, tailEnd=None, scene3d=None, sp3d=None, txPr=<openpyxl.chart.text.RichText object>\nParameters:\nbodyPr=<openpyxl.drawing.text.RichTextProperties object>\nParameters:\nrot=0, spcFirstLastPara=True, vertOverflow='ellipsis', horzOverflow=None, vert='horz', wrap='square', lIns=None, tIns=None, rIns=None, bIns=None, numCol=None, spcCol=None, rtlCol=None, fromWordArt=None, anchor='ctr', anchorCtr=True, forceAA=None, upright=None, compatLnSpc=None, prstTxWarp=None, scene3d=None, noAutofit=False, normAutofit=False, spAutoFit=False, lstStyle=<openpyxl.drawing.text.ListStyle object>\nParameters:\ndefPPr=None, lvl1pPr=None, lvl2pPr=None, lvl3pPr=None, lvl4pPr=None, lvl5pPr=None, lvl6pPr=None, lvl7pPr=None, lvl8pPr=None, lvl9pPr=None, p=[<openpyxl.drawing.text.Paragraph object>\nParameters:\npPr=<openpyxl.drawing.text.ParagraphProperties object>\nParameters:\nmarL=None, marR=None, lvl=None, indent=None, algn=None, defTabSz=None, rtl=None, eaLnBrk=None, fontAlgn=None, latinLnBrk=None, hangingPunct=None, lnSpc=None, spcBef=None, spcAft=None, tabLst=None, defRPr=<openpyxl.drawing.text.CharacterProperties object>\nParameters:\nkumimoji=None, lang=None, altLang=None, sz=1400.0, b=False, i=False, u=None, strike='noStrike', kern=1200, cap=None, spc=0, normalizeH=None, baseline=0, noProof=None, dirty=None, err=None, smtClean=None, smtId=None, bmk=None, ln=None, noFill=False, solidFill=<openpyxl.drawing.colors.ColorChoice object>\nParameters:\nscrgbClr=None, srgbClr=None, hslClr=None, sysClr=None, schemeClr=<openpyxl.drawing.colors.SchemeColor object>\nParameters:\nval='tx1', tint=None, shade=None, comp=None, inv=None, gray=None, alpha=None, alphaOff=None, alphaMod=None, hue=None, hueOff=None, hueMod=None, sat=None, satOff=None, satMod=None, lum=None, lumMod=65000, lumOff=35000, red=None, redOff=None, redMod=None, green=None, greenOff=None, greenMod=None, blue=None, blueOff=None, blueMod=None, gamma=None, invGamma=None, prstClr=None, gradFill=None, blipFill=None, pattFill=None, grpFill=False, effectLst=None, effectDag=None, highlight=None, uLnTx=False, uLn=None, uFillTx=False, uFill=False, latin=<openpyxl.drawing.text.Font object>\nParameters:\ntypeface='+mn-lt', panose=None, pitchFamily=None, charset=None, ea=<openpyxl.drawing.text.Font object>\nParameters:\ntypeface='+mn-ea', panose=None, pitchFamily=None, charset=None, cs=<openpyxl.drawing.text.Font object>\nParameters:\ntypeface='+mn-cs', panose=None, pitchFamily=None, charset=None, sym=None, hlinkClick=None, hlinkMouseOver=None, rtl=None, buClrTx=False, buClr=None, buSzTx=False, buSzPct=None, buSzPts=None, buFontTx=False, buFont=None, buNone=False, buAutoNum=False, buChar=None, buBlip=None, r=[<openpyxl.drawing.text.RegularTextRun object>\nParameters:\nrPr=None, t=''], br=None, fld=None, endParaRPr=<openpyxl.drawing.text.CharacterProperties object>\nParameters:\nkumimoji=None, lang='en-US', altLang=None, sz=None, b=None, i=None, u=None, strike=None, kern=None, cap=None, spc=None, normalizeH=None, baseline=None, noProof=None, dirty=None, err=None, smtClean=None, smtId=None, bmk=None, ln=None, noFill=False, solidFill=None, gradFill=None, blipFill=None, pattFill=None, grpFill=False, effectLst=None, effectDag=None, highlight=None, uLnTx=False, uLn=None, uFillTx=False, uFill=False, latin=None, ea=None, cs=None, sym=None, hlinkClick=None, hlinkMouseOver=None, rtl=None]",
+      "series_count": 1,
+      "series_names": [
+        "Sheet1!$A$10"
+      ]
+    },
+    {
+      "file": "Copy of Oct25 Equipment Results.xlsx",
+      "sheet": "Trend",
+      "index": 0,
+      "type": "BarChart (col) [clustered]",
+      "title": "UCCo/UEC",
+      "series_count": 1,
+      "series_names": [
+        "'Graph Data'!$A$10"
+      ]
+    },
+    {
+      "file": "Copy of Oct25 Equipment Results.xlsx",
+      "sheet": "Trend",
+      "index": 1,
+      "type": "BarChart (col) [clustered]",
+      "title": "IMC",
+      "series_count": 1,
+      "series_names": [
+        "'Graph Data'!$A$15"
+      ]
+    },
+    {
+      "file": "Copy of Oct25 Equipment Results.xlsx",
+      "sheet": "Trend",
+      "index": 2,
+      "type": "BarChart (col) [clustered]",
+      "title": "UCCo/UEC",
+      "series_count": 1,
+      "series_names": [
+        "'Graph Data'!$A$27"
+      ]
+    },
+    {
+      "file": "Copy of Oct25 Equipment Results.xlsx",
+      "sheet": "Trend",
+      "index": 3,
+      "type": "BarChart (col) [clustered]",
+      "title": "IMC",
+      "series_count": 1,
+      "series_names": [
+        "'Graph Data'!$A$33"
+      ]
+    },
+    {
+      "file": "Oct fuel spend trend.xlsx",
+      "sheet": "Sheet2",
+      "index": 0,
+      "type": "BarChart (col) [clustered]",
+      "title": "UCCo/UEC",
+      "series_count": 1,
+      "series_names": [
+        "Sheet1!$B$23"
+      ]
+    },
+    {
+      "file": "Oct fuel spend trend.xlsx",
+      "sheet": "Sheet2",
+      "index": 1,
+      "type": "BarChart (col) [clustered]",
+      "title": "Line & Civil",
+      "series_count": 1,
+      "series_names": [
+        "Sheet1!$B$18"
+      ]
+    },
+    {
+      "file": "Oct fuel spend trend.xlsx",
+      "sheet": "Sheet2",
+      "index": 2,
+      "type": "BarChart (col) [clustered]",
+      "title": "No. Cal Gas",
+      "series_count": 1,
+      "series_names": [
+        "Sheet1!$B$19"
+      ]
+    },
+    {
+      "file": "Oct fuel spend trend.xlsx",
+      "sheet": "Sheet2",
+      "index": 3,
+      "type": "BarChart (col) [clustered]",
+      "title": "So. Cal Gas",
+      "series_count": 1,
+      "series_names": [
+        "Sheet1!$B$20"
+      ]
+    },
+    {
+      "file": "Oct fuel spend trend.xlsx",
+      "sheet": "Sheet2",
+      "index": 4,
+      "type": "BarChart (col) [clustered]",
+      "title": "Electric Transmission",
+      "series_count": 1,
+      "series_names": [
+        "Sheet1!$B$21"
+      ]
+    },
+    {
+      "file": "Oct fuel spend trend.xlsx",
+      "sheet": "Sheet2",
+      "index": 5,
+      "type": "BarChart (col) [clustered]",
+      "title": "Fueling",
+      "series_count": 1,
+      "series_names": [
+        "Sheet1!$B$22"
+      ]
+    }
+  ],
+  "data_structure": {
+    "10 Oct25 SAFETY and QC COST REPORT - old.xlsx": {
+      "Sheet1": {
+        "headers": [
+          "Here is a breakdown of the costs"
+        ],
+        "row_count": 26
+      },
+      "Safety Dept Costs": {
+        "headers": [
+          "Safety Department Costs"
+        ],
+        "row_count": 64
+      },
+      "Training Dept Costs": {
+        "headers": [
+          "Training Department Costs"
+        ],
+        "row_count": 60
+      },
+      "QC Dept Costs": {
+        "headers": [
+          "Quality Department Costs"
+        ],
+        "row_count": 69
+      },
+      "GL Detail": {
+        "headers": [
+          "JE Explanation",
+          "Remark",
+          "-162024.66000000137",
+          "Replace Dept 820 with \"3.2_Training\""
+        ],
+        "row_count": 6487
+      },
+      "Safety Data Table": {
+        "headers": [
+          "Safety Cost Analysis by Division - Octob"
+        ],
+        "row_count": 20
+      },
+      "Training Data Table": {
+        "headers": [
+          "Training Cost Analysis by Division - Oct"
+        ],
+        "row_count": 20
+      },
+      "QC Data Table": {
+        "headers": [
+          "Quality Cost Analysis by Division - Octo"
+        ],
+        "row_count": 11
+      },
+      "YTD MTD": {
+        "headers": [
+          "ytd",
+          "MONTH REVENUE"
+        ],
+        "row_count": 75
+      },
+      "procedure": {
+        "headers": [
+          "2025-10-31 00:00:00"
+        ],
+        "row_count": 38
+      },
+      "mapping": {
+        "headers": [
+          "Company Number",
+          "Formatted General Ledger Number",
+          "Description",
+          "PL Category",
+          "FS Grouping",
+          "Indirect Department",
+          "Indirect Cost Type",
+          "Concat",
+          "Division",
+          "Company Number",
+          "Job Number",
+          "Sub Job Number",
+          "Cost Distribution",
+          "Cost Description"
+        ],
+        "row_count": 908
+      },
+      "Tie out": {
+        "headers": [
+          "Tie out"
+        ],
+        "row_count": 37
+      }
+    },
+    "Copy of 10 Oct25 Divisional OH report (002).xlsx": {
+      " Summary": {
+        "headers": [
+          "Divisional Cost Summary"
+        ],
+        "row_count": 59
+      },
+      "Hours Pivot": {
+        "headers": [
+          "Divisional OH Hours"
+        ],
+        "row_count": 292
+      },
+      "Detail1": {
+        "headers": [
+          "Details for Sum of Actual Cost - JOBSUBJ"
+        ],
+        "row_count": 5
+      },
+      "Detail2": {
+        "headers": [
+          "Details for Sum of Actual Cost - JOBSUBJ"
+        ],
+        "row_count": 17
+      },
+      "Cost Pivot": {
+        "headers": [
+          "MTD Pivot"
+        ],
+        "row_count": 177
+      },
+      "Job Cost Detail": {
+        "headers": [
+          "Detail Job Cost Ledger",
+          "Remark",
+          "je Explanation",
+          "5652833.329999973"
+        ],
+        "row_count": 5592
+      },
+      "Job Hours Detail": {
+        "headers": [
+          "Job Hours"
+        ],
+        "row_count": 1034
+      },
+      "Mapping": {
+        "headers": [
+          "Run Cognos: Public\\Underground Construct"
+        ],
+        "row_count": 45
+      }
+    },
+    "Copy of Oct25 Equipment Results.xlsx": {
+      "Equipment Analysis": {
+        "headers": [
+          "Underground Construction"
+        ],
+        "row_count": 62
+      },
+      "UCCo_IMC": {
+        "headers": [
+          "2025 Equipment Rollup Summary"
+        ],
+        "row_count": 41
+      }
+    },
+    "Oct fuel spend trend.xlsx": {
+      "sept": {
+        "headers": [
+          "Division",
+          "Total $",
+          "Gals"
+        ],
+        "row_count": 136
+      }
+    },
+    "INPUT": {
+      "Cost Code Detail Report": {
+        "headers": [
+          "Document\nType",
+          "Document\nNumber",
+          "Document\nCompany",
+          "Div #",
+          "Division Name",
+          "Project Manager",
+          "G/L Date",
+          "Actual\nAmount",
+          "Actual\nUnits",
+          "Job",
+          "Job Type",
+          "Job Status",
+          "Job Groupings",
+          "Cost Code",
+          "Description",
+          "Cost Type",
+          "Subledger",
+          "Customer WO",
+          "Journal\nEntry\nExplanation"
+        ],
+        "row_count": 186357
+      }
+    }
+  }
+}

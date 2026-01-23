@@ -1,0 +1,191 @@
+<!-- Empty State Overlay -->
+<div class="empty-state-overlay" id="emptyStateOverlay">
+    <div class="empty-state-content">
+        <div class="empty-state-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="M21 21l-4.35-4.35"/>
+                <path d="M8 11h6"/>
+            </svg>
+        </div>
+        <h3>No transactions match your filters</h3>
+        <p class="empty-state-suggestions">Try adjusting your filters:</p>
+        <ul class="empty-state-tips" id="emptyStateTips">
+            <li>Expand the date range</li>
+            <li>Select fewer divisions or departments</li>
+            <li>Clear category filters</li>
+        </ul>
+        <button class="empty-state-btn" onclick="clearFilters()">Clear All Filters</button>
+    </div>
+</div>
+
+<!-- Charts Grid -->
+<section class="chart-grid">
+    <!-- Monthly Trend - MAIN FOCUS with integrated comparison -->
+    <div class="chart-card full-width tall" id="mainTrendCard">
+        <div class="chart-header">
+            <div class="chart-title-section">
+                <span class="chart-title">Monthly Cost Trend</span>
+                <span class="chart-subtitle" id="monthlyTrendSubtitle">Showing gross costs, allocations, and net total</span>
+            </div>
+            <button class="chart-expand-btn" data-chart-id="monthlyTrendChart" title="Expand chart">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+                </svg>
+            </button>
+            <div class="chart-controls">
+                <div class="chart-control-group">
+                    <button class="chart-control-btn active" data-trend-view="summary">Summary</button>
+                    <button class="chart-control-btn" data-trend-view="by-dept">By Dept</button>
+                    <button class="chart-control-btn" data-trend-view="by-division">By Division</button>
+                    <button class="chart-control-btn" data-trend-view="by-category">By Category</button>
+                    <button class="chart-control-btn" data-trend-view="by-jobtype">GA vs IN</button>
+                </div>
+                <select class="chart-control-select" id="trendTopN" title="Number of items to show">
+                    <option value="5">Top 5</option>
+                    <option value="8" selected>Top 8</option>
+                    <option value="10">Top 10</option>
+                    <option value="15">Top 15</option>
+                </select>
+            </div>
+        </div>
+        <div class="trend-layout">
+            <div class="chart-container">
+                <canvas id="monthlyTrendChart"></canvas>
+            </div>
+            <!-- Integrated Comparison Panel -->
+            <div class="comparison-sidebar" id="comparisonPanel">
+                <div class="comparison-sidebar-header">
+                    <div class="sidebar-title">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+                        Period Compare
+                    </div>
+                    <div class="preset-pills">
+                        <button class="preset-pill" data-preset="mom">MoM</button>
+                        <button class="preset-pill" data-preset="qoq">QoQ</button>
+                        <button class="preset-pill" data-preset="yoy">YoY</button>
+                    </div>
+                </div>
+                <div class="comparison-periods-compact">
+                    <div class="period-block period-a">
+                        <div class="period-indicator">A</div>
+                        <div class="period-fields">
+                            <input type="date" class="period-date" id="periodAStartDate" title="Period A Start">
+                            <input type="date" class="period-date" id="periodAEndDate" title="Period A End">
+                        </div>
+                    </div>
+                    <div class="period-block period-b">
+                        <div class="period-indicator">B</div>
+                        <div class="period-fields">
+                            <input type="date" class="period-date" id="periodBStartDate" title="Period B Start">
+                            <input type="date" class="period-date" id="periodBEndDate" title="Period B End">
+                        </div>
+                    </div>
+                </div>
+                <div class="comparison-filters-mini">
+                    <select class="compare-filter" id="periodADivisions" title="Period A Division"><option value="">All Div</option></select>
+                    <select class="compare-filter" id="periodBDivisions" title="Period B Division"><option value="">All Div</option></select>
+                    <select class="compare-filter" id="periodADeptCategories" title="Period A Dept Cat"><option value="">All Cat</option></select>
+                    <select class="compare-filter" id="periodBDeptCategories" title="Period B Dept Cat"><option value="">All Cat</option></select>
+                </div>
+                <button class="compare-apply-btn" id="applyComparisonBtn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20,6 9,17 4,12"/></svg>
+                    Compare
+                </button>
+                <!-- Comparison Results -->
+                <div class="comparison-results" id="comparisonResults">
+                    <div class="result-row">
+                        <span class="result-label">Gross</span>
+                        <span class="result-a" id="compareGrossA">-</span>
+                        <span class="result-b" id="compareGrossB">-</span>
+                        <span class="result-var" id="compareGrossVar"><span class="var-amount">-</span><span class="var-pct"></span></span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">Alloc</span>
+                        <span class="result-a" id="compareAllocA">-</span>
+                        <span class="result-b" id="compareAllocB">-</span>
+                        <span class="result-var" id="compareAllocVar"><span class="var-amount">-</span><span class="var-pct"></span></span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">Net</span>
+                        <span class="result-a" id="compareNetA">-</span>
+                        <span class="result-b" id="compareNetB">-</span>
+                        <span class="result-var" id="compareNetVar"><span class="var-amount">-</span><span class="var-pct"></span></span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">Recov%</span>
+                        <span class="result-a" id="compareRecoveryA">-</span>
+                        <span class="result-b" id="compareRecoveryB">-</span>
+                        <span class="result-var" id="compareRecoveryVar"><span class="var-amount">-</span><span class="var-pct"></span></span>
+                    </div>
+                </div>
+                <button class="compare-reset-btn" id="clearComparisonBtn">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Department Breakdown -->
+    <div class="chart-card tall">
+        <div class="chart-header">
+            <span class="chart-title">Cost by Department</span>
+            <button class="chart-expand-btn" data-chart-id="departmentChart" title="Expand chart">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+                </svg>
+            </button>
+        </div>
+        <div class="chart-container">
+            <canvas id="departmentChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Division Breakdown -->
+    <div class="chart-card tall">
+        <div class="chart-header">
+            <span class="chart-title">Cost by Division (Top 10)</span>
+        </div>
+        <div class="chart-container">
+            <canvas id="divisionChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Cost Category Donut -->
+    <div class="chart-card">
+        <div class="chart-header">
+            <span class="chart-title">Cost Categories</span>
+        </div>
+        <div class="chart-container">
+            <canvas id="categoryChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Document Type Distribution -->
+    <div class="chart-card">
+        <div class="chart-header">
+            <span class="chart-title">Transaction Types (Top 10)</span>
+        </div>
+        <div class="chart-container">
+            <canvas id="docTypeChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Top Cost Types -->
+    <div class="chart-card full-width tall">
+        <div class="chart-header">
+            <span class="chart-title">Top 15 Cost Types</span>
+        </div>
+        <div class="chart-container">
+            <canvas id="costTypeChart"></canvas>
+        </div>
+    </div>
+</section>
+
+<!-- Hidden comparison filter selects for JS compatibility -->
+<div style="display:none">
+    <select id="periodADepartments"></select>
+    <select id="periodBDepartments"></select>
+    <select id="periodACategories"></select>
+    <select id="periodBCategories"></select>
+    <select id="periodADocTypes"></select>
+    <select id="periodBDocTypes"></select>
+</div>

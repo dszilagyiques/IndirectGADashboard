@@ -1,0 +1,186 @@
+/* === EMPTY STATE === */
+.empty-state-overlay {
+    display: none;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: 12px;
+    padding: 48px 24px;
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.empty-state-overlay.visible {
+    display: block;
+}
+
+.empty-state-content {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.empty-state-icon {
+    color: var(--text-muted);
+    margin-bottom: 16px;
+}
+
+.empty-state-overlay h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.empty-state-suggestions {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.empty-state-tips {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px;
+    text-align: left;
+    display: inline-block;
+}
+
+.empty-state-tips li {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    padding: 4px 0;
+    padding-left: 16px;
+    position: relative;
+}
+
+.empty-state-tips li::before {
+    content: '\2022';
+    position: absolute;
+    left: 0;
+    color: var(--accent-blue);
+}
+
+.empty-state-btn {
+    padding: 10px 20px;
+    background: var(--accent-blue);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.empty-state-btn:hover {
+    background: #79b8ff;
+}
+
+/* === CHART GRID === */
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.chart-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-card.full-width { grid-column: 1 / -1; }
+.chart-card.tall { min-height: 380px; }
+
+.chart-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.chart-title-section {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.chart-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.chart-subtitle {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+}
+
+.chart-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.chart-control-group {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    background: var(--bg-base);
+    border-radius: 5px;
+    padding: 2px;
+}
+
+.chart-control-btn {
+    padding: 4px 8px;
+    background: transparent;
+    border: none;
+    border-radius: 3px;
+    color: var(--text-secondary);
+    font-size: 0.65rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.chart-control-btn:hover {
+    color: var(--text-primary);
+    background: var(--bg-elevated);
+}
+
+.chart-control-btn.active {
+    background: var(--accent-blue);
+    color: white;
+}
+
+.chart-control-select {
+    padding: 4px 6px;
+    background: var(--bg-base);
+    border: 1px solid var(--border-default);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 0.65rem;
+    cursor: pointer;
+}
+
+.chart-container {
+    flex: 1;
+    position: relative;
+    min-height: 260px;
+}
+
+.chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+@media (max-width: 1100px) {
+    .chart-grid {
+        grid-template-columns: 1fr;
+    }
+}

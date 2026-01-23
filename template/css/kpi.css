@@ -1,0 +1,245 @@
+/* === KPI CARDS === */
+.kpi-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.kpi-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    padding: 10px 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+}
+
+.kpi-card.blue::before { background: var(--accent-blue); }
+.kpi-card.green::before { background: var(--accent-green); }
+.kpi-card.orange::before { background: var(--accent-orange); }
+.kpi-card.purple::before { background: var(--accent-purple); }
+.kpi-card.cyan::before { background: var(--accent-cyan); }
+
+.kpi-label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+}
+
+.kpi-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    font-family: 'Consolas', 'Monaco', monospace;
+    line-height: 1.2;
+}
+
+.kpi-value.blue { color: var(--accent-blue); }
+.kpi-value.green { color: var(--accent-green); }
+.kpi-value.orange { color: var(--accent-orange); }
+.kpi-value.purple { color: var(--accent-purple); }
+
+.kpi-value-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.kpi-trend {
+    font-size: 0.65rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+
+.kpi-trend.up {
+    color: var(--accent-red);
+    background: rgba(248, 81, 73, 0.15);
+}
+
+.kpi-trend.down {
+    color: var(--accent-green);
+    background: rgba(63, 185, 80, 0.15);
+}
+
+.kpi-trend.neutral {
+    color: var(--text-muted);
+    background: rgba(139, 148, 158, 0.15);
+}
+
+.kpi-trend .arrow {
+    font-size: 0.7rem;
+}
+
+.kpi-sparkline {
+    width: 100%;
+    height: 24px;
+    margin: 4px 0 2px;
+    opacity: 0.9;
+}
+
+/* Net Costs layout with progress ring */
+.kpi-net-layout {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.kpi-net-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.kpi-net-main .kpi-sparkline {
+    width: 90px;
+}
+
+.kpi-progress-ring {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.kpi-progress-ring svg {
+    width: 44px;
+    height: 44px;
+    transform: rotate(-90deg);
+}
+
+.ring-bg {
+    stroke: var(--border-default);
+}
+
+.ring-progress {
+    stroke: var(--accent-green);
+    stroke-linecap: round;
+    transition: stroke-dasharray 0.5s ease;
+}
+
+.ring-text {
+    fill: var(--accent-green);
+    font-size: 0.5rem;
+    font-weight: 700;
+    text-anchor: middle;
+    transform: rotate(90deg);
+    transform-origin: 18px 18px;
+}
+
+.ring-label {
+    font-size: 0.5rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.kpi-subtext {
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    margin-top: 1px;
+}
+
+/* === INSIGHTS PANEL === */
+.insights-panel {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.insights-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--bg-base);
+    cursor: pointer;
+    user-select: none;
+}
+
+.insights-header:hover {
+    background: var(--bg-elevated);
+}
+
+.insights-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.insights-toggle {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    width: 16px;
+    text-align: center;
+}
+
+.insights-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 12px;
+    transition: max-height 0.2s ease, padding 0.2s ease;
+}
+
+.insights-panel.collapsed .insights-content {
+    max-height: 0;
+    padding: 0 12px;
+    overflow: hidden;
+}
+
+.insight-item {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    padding: 4px 10px;
+    background: var(--bg-base);
+    border-radius: 4px;
+    border-left: 2px solid var(--accent-blue);
+}
+
+.insight-item strong {
+    color: var(--text-primary);
+}
+
+.insight-item .up {
+    color: var(--accent-red);
+}
+
+.insight-item .down {
+    color: var(--accent-green);
+}
+
+@media (max-width: 1200px) {
+    .kpi-row {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .kpi-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .kpi-row {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,407 @@
+/* === COMPARISON SIDEBAR - HIGH EFFORT DESIGN === */
+
+/* Trend Layout with Sidebar */
+.trend-layout {
+    display: flex;
+    flex: 1;
+    gap: 12px;
+    min-height: 340px;
+}
+
+.trend-layout .chart-container {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Comparison Sidebar */
+.comparison-sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: linear-gradient(180deg,
+        rgba(163, 113, 247, 0.06) 0%,
+        rgba(88, 166, 255, 0.04) 50%,
+        var(--bg-base) 100%
+    );
+    border: 1px solid var(--border-default);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Decorative glow effect */
+.comparison-sidebar::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(163, 113, 247, 0.08) 0%, transparent 60%);
+    pointer-events: none;
+}
+
+/* Header */
+.comparison-sidebar-header {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    z-index: 1;
+}
+
+.sidebar-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--accent-purple);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sidebar-title svg {
+    opacity: 0.8;
+}
+
+/* Preset Pills */
+.preset-pills {
+    display: flex;
+    gap: 4px;
+}
+
+.preset-pill {
+    flex: 1;
+    padding: 5px 6px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-muted);
+    border-radius: 6px;
+    color: var(--text-muted);
+    font-size: 0.6rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.preset-pill:hover {
+    border-color: var(--accent-purple);
+    color: var(--accent-purple);
+    background: rgba(163, 113, 247, 0.08);
+    transform: translateY(-1px);
+}
+
+.preset-pill.active {
+    background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-blue) 100%);
+    border-color: transparent;
+    color: white;
+    box-shadow: 0 2px 8px rgba(163, 113, 247, 0.3);
+}
+
+/* Period Blocks */
+.comparison-periods-compact {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: relative;
+    z-index: 1;
+}
+
+.period-block {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-muted);
+    border-radius: 8px;
+    transition: all 0.15s;
+}
+
+.period-block:hover {
+    border-color: var(--border-default);
+}
+
+.period-block.period-a {
+    border-left: 3px solid var(--accent-blue);
+}
+
+.period-block.period-b {
+    border-left: 3px solid var(--accent-purple);
+}
+
+.period-indicator {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    font-weight: 700;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.period-a .period-indicator {
+    background: rgba(88, 166, 255, 0.15);
+    color: var(--accent-blue);
+}
+
+.period-b .period-indicator {
+    background: rgba(163, 113, 247, 0.15);
+    color: var(--accent-purple);
+}
+
+.period-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+}
+
+.period-date {
+    padding: 3px 6px;
+    background: var(--bg-base);
+    border: 1px solid var(--border-muted);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 0.65rem;
+    color-scheme: dark;
+    width: 100%;
+}
+
+.period-date:focus {
+    outline: none;
+    border-color: var(--accent-purple);
+}
+
+/* Mini Filters */
+.comparison-filters-mini {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    position: relative;
+    z-index: 1;
+}
+
+.compare-filter {
+    padding: 4px 6px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-muted);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    font-size: 0.6rem;
+    cursor: pointer;
+}
+
+.compare-filter:focus {
+    outline: none;
+    border-color: var(--accent-purple);
+}
+
+/* Compare Button */
+.compare-apply-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-blue) 100%);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.compare-apply-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.compare-apply-btn:hover::before {
+    opacity: 1;
+}
+
+.compare-apply-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(163, 113, 247, 0.4);
+}
+
+.compare-apply-btn svg,
+.compare-apply-btn span {
+    position: relative;
+    z-index: 1;
+}
+
+/* Comparison Results */
+.comparison-results {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-muted);
+    border-radius: 8px;
+    position: relative;
+    z-index: 1;
+}
+
+.result-row {
+    display: grid;
+    grid-template-columns: 40px 1fr 1fr 1fr;
+    gap: 4px;
+    align-items: center;
+    font-size: 0.6rem;
+    padding: 3px 0;
+    border-bottom: 1px solid var(--border-muted);
+}
+
+.result-row:last-child {
+    border-bottom: none;
+}
+
+.result-label {
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.result-a {
+    color: var(--accent-blue);
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-weight: 600;
+    text-align: right;
+}
+
+.result-b {
+    color: var(--accent-purple);
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-weight: 600;
+    text-align: right;
+}
+
+.result-var {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    font-family: 'Consolas', 'Monaco', monospace;
+}
+
+.var-amount {
+    font-weight: 600;
+    font-size: 0.6rem;
+}
+
+.var-pct {
+    font-size: 0.5rem;
+    opacity: 0.7;
+}
+
+.result-var.positive .var-amount,
+.result-var.positive .var-pct {
+    color: var(--accent-red);
+}
+
+.result-var.negative .var-amount,
+.result-var.negative .var-pct {
+    color: var(--accent-green);
+}
+
+.result-var.neutral .var-amount,
+.result-var.neutral .var-pct {
+    color: var(--text-muted);
+}
+
+/* Reset Button */
+.compare-reset-btn {
+    padding: 6px 10px;
+    background: transparent;
+    border: 1px solid var(--border-muted);
+    border-radius: 6px;
+    color: var(--text-muted);
+    font-size: 0.6rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    z-index: 1;
+}
+
+.compare-reset-btn:hover {
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+    background: rgba(248, 81, 73, 0.08);
+}
+
+/* Hide old comparison elements */
+.kpi-comparison-row,
+.comparison-panel,
+.compare-toggle {
+    display: none !important;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 1100px) {
+    .trend-layout {
+        flex-direction: column;
+    }
+
+    .comparison-sidebar {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: 10px;
+    }
+
+    .comparison-sidebar-header {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .comparison-periods-compact {
+        flex-direction: row;
+        flex: 1;
+    }
+
+    .period-block {
+        flex: 1;
+    }
+
+    .comparison-filters-mini {
+        width: auto;
+    }
+
+    .comparison-results {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .result-row {
+        grid-template-columns: 50px 1fr 1fr 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .comparison-sidebar {
+        flex-direction: column;
+    }
+
+    .comparison-periods-compact {
+        flex-direction: column;
+    }
+}

@@ -1,0 +1,64 @@
+<!-- KPI Row -->
+<section class="kpi-row" id="kpiRow">
+    <div class="kpi-card blue">
+        <div class="kpi-label">Gross Costs</div>
+        <div class="kpi-value-row">
+            <div class="kpi-value blue" id="kpiGross">$0</div>
+            <div class="kpi-trend" id="kpiGrossTrend"></div>
+        </div>
+        <canvas class="kpi-sparkline" id="sparklineGross" width="120" height="24"></canvas>
+        <div class="kpi-subtext" id="kpiGrossRecords">0 records</div>
+    </div>
+    <div class="kpi-card green">
+        <div class="kpi-label">Allocations</div>
+        <div class="kpi-value-row">
+            <div class="kpi-value green" id="kpiAllocations">$0</div>
+            <div class="kpi-trend" id="kpiAllocTrend"></div>
+        </div>
+        <canvas class="kpi-sparkline" id="sparklineAlloc" width="120" height="24"></canvas>
+        <div class="kpi-subtext" id="kpiAllocRecords">0 records</div>
+    </div>
+    <div class="kpi-card orange">
+        <div class="kpi-label">Net Costs</div>
+        <div class="kpi-net-layout">
+            <div class="kpi-net-main">
+                <div class="kpi-value-row">
+                    <div class="kpi-value orange" id="kpiNet">$0</div>
+                    <div class="kpi-trend" id="kpiNetTrend"></div>
+                </div>
+                <canvas class="kpi-sparkline" id="sparklineNet" width="90" height="24"></canvas>
+            </div>
+            <div class="kpi-progress-ring" id="recoveryRing">
+                <svg viewBox="0 0 36 36">
+                    <path class="ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-width="3"/>
+                    <path class="ring-progress" id="ringProgress" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-width="3" stroke-dasharray="0, 100"/>
+                    <text x="18" y="20.5" class="ring-text" id="ringText">0%</text>
+                </svg>
+                <div class="ring-label">Recovery</div>
+            </div>
+        </div>
+    </div>
+    <div class="kpi-card purple">
+        <div class="kpi-label">G&A vs Indirect</div>
+        <div class="kpi-value purple" id="kpiRatio">0% / 0%</div>
+        <div class="kpi-subtext">GA / IN split</div>
+    </div>
+    <div class="kpi-card cyan">
+        <div class="kpi-label">Monthly Avg</div>
+        <div class="kpi-value-row">
+            <div class="kpi-value blue" id="kpiMonthlyAvg">$0</div>
+            <div class="kpi-trend" id="kpiMonthlyTrend"></div>
+        </div>
+        <canvas class="kpi-sparkline" id="sparklineMonthly" width="120" height="24"></canvas>
+        <div class="kpi-subtext" id="kpiMonthCount">0 months</div>
+    </div>
+</section>
+
+<!-- Auto-Insights Panel -->
+<section class="insights-panel" id="insightsPanel">
+    <div class="insights-header" onclick="toggleInsightsPanel()">
+        <span class="insights-title">Key Insights</span>
+        <span class="insights-toggle" id="insightsToggle">-</span>
+    </div>
+    <div class="insights-content" id="insightsContent"></div>
+</section>

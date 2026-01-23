@@ -1,0 +1,46 @@
+<!-- Drill-Through Modal -->
+<div class="drillthrough-overlay" id="drillModal">
+    <div class="drillthrough-modal">
+        <div class="drillthrough-header">
+            <div class="drillthrough-header-left">
+                <h2 id="drillTitle">Transaction Details</h2>
+                <p id="drillSubtitle">Click on any chart element to drill through</p>
+            </div>
+            <div class="drillthrough-header-right">
+                <button class="drill-btn" id="drillExportCsv">CSV</button>
+                <button class="drill-btn primary" id="drillExportExcel">Excel</button>
+                <button class="drill-close" id="drillClose">&#10005;</button>
+            </div>
+        </div>
+        <div class="drillthrough-summary" id="drillSummary"></div>
+        <div class="drillthrough-toolbar">
+            <div class="drill-search">
+                <span class="drill-search-icon">&#128269;</span>
+                <input type="text" id="drillSearchInput" placeholder="Search transactions...">
+            </div>
+            <div class="drill-pagination">
+                <button class="drill-page-btn" id="drillPrevPage">&#9664;</button>
+                <span class="drill-page-info" id="drillPageInfo">1-100 of 0</span>
+                <button class="drill-page-btn" id="drillNextPage">&#9654;</button>
+            </div>
+        </div>
+        <div class="drillthrough-grid" id="drillGrid">
+            <table class="drill-table" id="drillTable">
+                <thead>
+                    <tr>
+                        <th data-col="G/L Date">Date <span class="sort-icon">&#8597;</span></th>
+                        <th data-col="Division Name">Division <span class="sort-icon">&#8597;</span></th>
+                        <th data-col="Department">Dept <span class="sort-icon">&#8597;</span></th>
+                        <th data-col="Job">Job <span class="sort-icon">&#8597;</span></th>
+                        <th data-col="Job Type">Type <span class="sort-icon">&#8597;</span></th>
+                        <th data-col="Description">Description <span class="sort-icon">&#8597;</span></th>
+                        <th data-col="Cost Type">Cost Type <span class="sort-icon">&#8597;</span></th>
+                        <th data-col="Actual Amount" style="text-align:right">Amount <span class="sort-icon">&#8597;</span></th>
+                        <th data-col="Document Type">Doc <span class="sort-icon">&#8597;</span></th>
+                    </tr>
+                </thead>
+                <tbody id="drillTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>

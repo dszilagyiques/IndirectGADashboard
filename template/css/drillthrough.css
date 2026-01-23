@@ -1,0 +1,356 @@
+/* === DRILL-THROUGH MODAL === */
+.drillthrough-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.25s ease;
+    z-index: 3000;
+}
+
+.drillthrough-overlay.open { opacity: 1; visibility: visible; }
+
+.drillthrough-modal {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: 16px;
+    width: 95%;
+    max-width: 1500px;
+    height: 90vh;
+    max-height: 950px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6);
+    animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalIn {
+    from { opacity: 0; transform: scale(0.95) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.drillthrough-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-default);
+    flex-shrink: 0;
+}
+
+.drillthrough-header-left h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--accent-blue);
+}
+
+.drillthrough-header-left p {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.drillthrough-header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.drill-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.drill-btn:hover {
+    border-color: var(--accent-blue);
+    color: var(--text-primary);
+}
+
+.drill-btn.primary {
+    background: var(--accent-blue);
+    border-color: var(--accent-blue);
+    color: white;
+}
+
+.drill-close {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.drill-close:hover {
+    background: var(--accent-red);
+    border-color: var(--accent-red);
+    color: white;
+}
+
+.drillthrough-summary {
+    display: flex;
+    gap: 24px;
+    padding: 12px 20px;
+    background: var(--bg-base);
+    border-bottom: 1px solid var(--border-default);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.drill-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.drill-stat-label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+}
+
+.drill-stat-value {
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: 'Consolas', 'Monaco', monospace;
+}
+
+.drill-stat-value.blue { color: var(--accent-blue); }
+.drill-stat-value.green { color: var(--accent-green); }
+.drill-stat-value.orange { color: var(--accent-orange); }
+.drill-stat-value.purple { color: var(--accent-purple); }
+
+.drillthrough-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border-default);
+    flex-shrink: 0;
+    gap: 12px;
+}
+
+.drill-search {
+    position: relative;
+    flex: 1;
+    max-width: 350px;
+}
+
+.drill-search input {
+    width: 100%;
+    padding: 8px 14px 8px 34px;
+    background: var(--bg-base);
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 0.8rem;
+}
+
+.drill-search input:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+}
+
+.drill-search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.drill-pagination {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.drill-page-info {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    padding: 0 6px;
+}
+
+.drill-page-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.drill-page-btn:hover:not(:disabled) {
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+}
+
+.drill-page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.drillthrough-grid {
+    flex: 1;
+    overflow: auto;
+}
+
+.drill-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+    min-width: 1100px;
+}
+
+.drill-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.drill-table th {
+    background: var(--bg-elevated);
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--accent-blue);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+}
+
+.drill-table th:hover {
+    background: var(--bg-overlay);
+    color: var(--text-primary);
+}
+
+.drill-table th.sorted { color: var(--accent-cyan); }
+
+.drill-table th .sort-icon {
+    margin-left: 4px;
+    opacity: 0.4;
+}
+
+.drill-table th:hover .sort-icon,
+.drill-table th.sorted .sort-icon { opacity: 1; }
+
+.drill-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-muted);
+}
+
+.drill-table tbody tr:hover {
+    background: rgba(88, 166, 255, 0.05);
+}
+
+.drill-table tbody tr:nth-child(even) {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.drill-table .col-amount {
+    font-family: 'Consolas', 'Monaco', monospace;
+    text-align: right;
+    font-weight: 600;
+    min-width: 140px;
+}
+
+.drill-table .col-amount.positive { color: var(--accent-blue); }
+.drill-table .col-amount.negative { color: var(--accent-green); }
+
+.amount-cell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.amount-bar {
+    position: absolute;
+    left: 0;
+    top: 2px;
+    bottom: 2px;
+    opacity: 0.2;
+    border-radius: 2px;
+    transition: width 0.2s ease;
+}
+
+.amount-value {
+    position: relative;
+    z-index: 1;
+}
+
+.drill-table .col-date {
+    font-family: 'Consolas', 'Monaco', monospace;
+    color: var(--text-secondary);
+    position: sticky;
+    left: 0;
+    background: var(--bg-surface);
+    z-index: 2;
+}
+
+.drill-table thead th:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 12;
+}
+
+.drill-table tbody tr:nth-child(even) .col-date {
+    background: rgba(22, 27, 34, 0.9);
+}
+
+.drill-table tbody tr:hover .col-date {
+    background: rgba(88, 166, 255, 0.1);
+}
+
+.drill-table .col-job {
+    font-family: 'Consolas', 'Monaco', monospace;
+    color: var(--accent-purple);
+}
+
+.job-badge {
+    display: inline-flex;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.65rem;
+    font-weight: 600;
+}
+
+.job-badge.ga { background: rgba(163, 113, 247, 0.15); color: var(--accent-purple); }
+.job-badge.in { background: rgba(57, 197, 207, 0.15); color: var(--accent-cyan); }
+
+.drill-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: var(--text-muted);
+}

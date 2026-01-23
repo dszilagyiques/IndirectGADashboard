@@ -1,0 +1,28 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.DS_Store
+Thumbs.db
+
+# Windows reserved device names / accidental placeholder
+nul
+
+# Logs
+logs/
+*.log
+
+# Python tooling
+.python-version
+
+# Editor/IDE
+.vscode/
+.idea/
+
+# Keep large/generated artifacts out by default
+outputs/
+
+
