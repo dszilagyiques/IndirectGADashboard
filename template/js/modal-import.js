@@ -24,7 +24,8 @@ const ImportModal = (function() {
         'Vendor Name',
         'Employee Name',
         'Reference',
-        'Comments'
+        'Comments',
+        'Actual Units'  // Required for manhours tracking (T1-T4 doc types)
     ];
 
     // All columns we care about (for selective extraction)
@@ -494,6 +495,7 @@ const ImportModal = (function() {
         const divNames = cols['Division Name'] || [];
         const jobTypes = cols['Job Type'] || [];
         const descriptions = cols['Description'] || [];
+        const actualUnits = cols['Actual Units'] || [];  // For manhours tracking
 
         // Pre-allocate result array (avoid push operations)
         const processed = [];
@@ -567,6 +569,14 @@ const ImportModal = (function() {
                 const department = deptName ? `${deptCode} - ${deptName}` : (deptCode ? `Unknown (${deptCode})` : 'Unknown');
                 const deptCategory = DEPARTMENT_CATEGORY_MAP[deptCode] || 'Other';
 
+                // Parse actual units (for manhours)
+                let units = actualUnits[i];
+                if (typeof units === 'string') {
+                    units = parseFloat(units.replace(AMOUNT_CLEAN_REGEX, '')) || 0;
+                } else if (typeof units !== 'number') {
+                    units = 0;
+                }
+
                 // Build row object (ensure consistent types with PapaParse output)
                 processed[writeIdx++] = {
                     'G/L Date': dateStr || '',
@@ -575,6 +585,7 @@ const ImportModal = (function() {
                     'Job Type': String(jobTypes[i] || ''),
                     'Cost Type': costType,
                     'Actual Amount': amount,
+                    'Actual Units': units,  // For manhours tracking (T1-T4 doc types)
                     'Document Type': String(docTypes[i] || ''),
                     'Description': String(descriptions[i] || ''),
                     'Category': category,
