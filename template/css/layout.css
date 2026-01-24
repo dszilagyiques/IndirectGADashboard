@@ -15,7 +15,11 @@
 }
 
 .unified-header {
-    background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-elevated) 100%);
+    background: linear-gradient(135deg,
+        var(--bg-surface) 0%,
+        rgba(88, 166, 255, 0.03) 50%,
+        var(--bg-elevated) 100%
+    );
     border-bottom: 1px solid var(--border-default);
     padding: 8px 16px;
     display: flex;
@@ -23,6 +27,22 @@
     align-items: center;
     max-width: 1800px;
     margin: 0 auto;
+    position: relative;
+}
+
+.unified-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(88, 166, 255, 0.3),
+        rgba(163, 113, 247, 0.3),
+        transparent
+    );
 }
 
 .header-brand {
@@ -62,7 +82,10 @@
 
 /* === COMPACT FILTERS === */
 .compact-filters {
-    background: var(--bg-surface);
+    background: linear-gradient(180deg,
+        var(--bg-surface) 0%,
+        rgba(163, 113, 247, 0.02) 100%
+    );
     border-bottom: 1px solid var(--border-default);
     padding: 6px 16px;
 }
@@ -84,11 +107,13 @@
     border: 1px solid var(--border-muted);
     border-radius: 6px;
     padding: 3px 6px;
-    transition: border-color 0.15s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .filter-chip:hover {
     border-color: var(--border-default);
+    background: var(--bg-elevated);
+    transform: translateY(-1px);
 }
 
 .filter-chip label {
@@ -164,20 +189,23 @@
 .mini-dropdown {
     display: none;
     position: absolute;
-    top: 100%;
+    top: calc(100% + 4px);
     left: 0;
-    min-width: 180px;
-    max-height: 250px;
+    min-width: 200px;
+    max-height: 280px;
     background: var(--bg-elevated);
     border: 1px solid var(--border-default);
     border-radius: 8px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
     z-index: 1000;
     overflow: hidden;
+    /* Ensure dropdown stays in viewport */
+    max-width: calc(100vw - 32px);
 }
 
 .mini-dropdown.open {
-    display: block;
+    display: flex;
+    flex-direction: column;
 }
 
 .mini-search {
@@ -220,7 +248,7 @@
 }
 
 .mini-options {
-    max-height: 180px;
+    flex: 1;
     overflow-y: auto;
     padding: 4px;
 }
@@ -228,24 +256,38 @@
 .mini-options label {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 5px 8px;
+    gap: 8px;
+    padding: 7px 10px;
     border-radius: 4px;
     font-size: 0.7rem;
     color: var(--text-secondary);
     cursor: pointer;
-    transition: background 0.1s;
+    transition: all 0.1s;
 }
 
 .mini-options label:hover {
-    background: var(--bg-surface);
+    background: rgba(88, 166, 255, 0.1);
     color: var(--text-primary);
 }
 
+.mini-options label:has(input:checked) {
+    background: rgba(163, 113, 247, 0.15);
+    color: var(--accent-purple);
+}
+
 .mini-options input[type="checkbox"] {
-    width: 12px;
-    height: 12px;
-    accent-color: var(--accent-blue);
+    width: 14px;
+    height: 14px;
+    accent-color: var(--accent-purple);
+    cursor: pointer;
+}
+
+/* Filter Separator */
+.filter-sep {
+    width: 1px;
+    height: 20px;
+    background: var(--border-muted);
+    margin: 0 4px;
 }
 
 /* Date Presets */
@@ -256,12 +298,12 @@
 }
 
 .preset-btn {
-    padding: 4px 8px;
+    padding: 5px 10px;
     background: var(--bg-base);
     border: 1px solid var(--border-muted);
     border-radius: 4px;
     color: var(--text-secondary);
-    font-size: 0.6rem;
+    font-size: 0.65rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.15s;
@@ -274,36 +316,123 @@
 }
 
 .preset-btn.active {
-    background: var(--accent-blue);
-    border-color: var(--accent-blue);
+    background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+    border-color: transparent;
     color: white;
+    box-shadow: 0 2px 8px rgba(88, 166, 255, 0.3);
+}
+
+/* Pill Toggle (Job Type) */
+.pill-toggle {
+    display: flex;
+    gap: 2px;
+    background: var(--bg-base);
+    border-radius: 5px;
+    padding: 2px;
+}
+
+.pill-btn {
+    padding: 4px 10px;
+    background: transparent;
+    border: none;
+    border-radius: 3px;
+    color: var(--text-muted);
+    font-size: 0.65rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.pill-btn:hover {
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.pill-btn.active {
+    background: var(--accent-purple);
+    color: white;
+}
+
+/* Chip Toggles (Dept Category) */
+.filter-row-secondary {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border-muted);
+}
+
+.filter-chip.chip-row {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.chip-toggles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.chip-toggle {
+    padding: 4px 10px;
+    background: var(--bg-base);
+    border: 1px solid var(--border-muted);
+    border-radius: 12px;
+    color: var(--text-secondary);
+    font-size: 0.65rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.chip-toggle:hover {
+    border-color: var(--border-default);
+    color: var(--text-primary);
+    background: var(--bg-elevated);
+}
+
+.chip-toggle.active {
+    background: rgba(163, 113, 247, 0.2);
+    border-color: var(--accent-purple);
+    color: var(--accent-purple);
 }
 
 /* Filter Actions */
 .filter-actions-inline {
     display: flex;
-    gap: 4px;
+    gap: 6px;
     margin-left: auto;
     align-items: center;
 }
 
-.filter-preview {
-    font-size: 0.65rem;
-    color: var(--text-muted);
-    padding: 0 8px;
-    display: none;
+/* Filter loading indicator */
+.filter-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    opacity: 0;
+    transition: opacity 0.15s;
 }
 
-.filter-preview.visible {
-    display: inline;
+.filter-status.loading {
+    opacity: 1;
 }
 
-.filter-preview.changed {
-    color: var(--accent-blue);
-    font-weight: 600;
+.filter-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--border-default);
+    border-top-color: var(--accent-blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
 }
 
 .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     padding: 5px 10px;
     background: var(--bg-elevated);
     border: 1px solid var(--border-default);
@@ -312,22 +441,24 @@
     font-size: 0.65rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .action-btn:hover {
     border-color: var(--accent-blue);
     color: var(--text-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .action-btn.primary {
-    background: var(--accent-blue);
-    border-color: var(--accent-blue);
+    background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+    border-color: transparent;
     color: white;
 }
 
 .action-btn.primary:hover {
-    background: #79b8ff;
+    box-shadow: 0 4px 12px rgba(88, 166, 255, 0.4);
 }
 
 /* Active filters pills */
@@ -349,10 +480,15 @@
     align-items: center;
     gap: 3px;
     padding: 2px 6px;
-    background: rgba(88, 166, 255, 0.12);
+    background: linear-gradient(135deg, rgba(88, 166, 255, 0.15) 0%, rgba(163, 113, 247, 0.1) 100%);
     border-radius: 4px;
     font-size: 0.6rem;
     color: var(--accent-blue);
+    transition: all 0.15s;
+}
+
+.filter-pill:hover {
+    background: linear-gradient(135deg, rgba(88, 166, 255, 0.2) 0%, rgba(163, 113, 247, 0.15) 100%);
 }
 
 .filter-pill button {

@@ -84,12 +84,21 @@
 }
 
 .chart-card {
-    background: var(--bg-surface);
+    background: linear-gradient(180deg,
+        var(--bg-surface) 0%,
+        rgba(88, 166, 255, 0.02) 100%
+    );
     border: 1px solid var(--border-default);
     border-radius: 10px;
     padding: 12px;
     display: flex;
     flex-direction: column;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chart-card:hover {
+    border-color: var(--border-default);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 .chart-card.full-width { grid-column: 1 / -1; }
@@ -144,18 +153,20 @@
     color: var(--text-secondary);
     font-size: 0.65rem;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
 }
 
 .chart-control-btn:hover {
     color: var(--text-primary);
     background: var(--bg-elevated);
+    transform: translateY(-1px);
 }
 
 .chart-control-btn.active {
-    background: var(--accent-blue);
+    background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
     color: white;
+    box-shadow: 0 2px 8px rgba(88, 166, 255, 0.3);
 }
 
 .chart-control-select {
@@ -166,6 +177,33 @@
     color: var(--text-primary);
     font-size: 0.65rem;
     cursor: pointer;
+    transition: border-color 0.15s;
+}
+
+.chart-control-select:hover {
+    border-color: var(--accent-blue);
+}
+
+/* Expand button */
+.chart-expand-btn {
+    padding: 5px;
+    background: var(--bg-base);
+    border: 1px solid var(--border-muted);
+    border-radius: 4px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chart-expand-btn:hover {
+    border-color: var(--accent-purple);
+    color: var(--accent-purple);
+    background: rgba(163, 113, 247, 0.1);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(163, 113, 247, 0.2);
 }
 
 .chart-container {

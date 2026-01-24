@@ -24,6 +24,19 @@ const CATEGORY_COLORS = {
     'Other Allocations': '#238636', 'Corporate Overhead': '#f85149', 'G&A & Other': COLORS.gray, 'Other': '#6e7681'
 };
 
+const DEPT_CATEGORY_COLORS = {
+    'G&A': COLORS.blue,
+    'Ops Support': COLORS.purple,
+    'Equipment': COLORS.orange,
+    'Safety': COLORS.green,
+    'Tools': COLORS.cyan,
+    'Field': COLORS.pink,
+    'Comms': '#f0883e',
+    'Other': COLORS.gray
+};
+
+const MANHOUR_DOC_TYPES = ['T1', 'T2', 'T3', 'T4'];
+
 // Unified chart configuration defaults
 const CHART_DEFAULTS = {
     responsive: true,

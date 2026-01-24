@@ -25,4 +25,7 @@ logs/
 # Keep large/generated artifacts out by default
 outputs/
 
+# Build cache
+.build_cache/
+
 

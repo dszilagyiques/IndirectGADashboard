@@ -86,7 +86,33 @@ function getMonthlyTrendData() {
 
 // === KPI CALCULATIONS ===
 
-function calculatePriorPeriodKPIs() {
+// Deferred prior period calculation (not on hot path)
+let cachedPriorKPIs = null;
+let priorKPIsCalculated = false;
+
+function calculatePriorPeriodKPIsDeferred() {
+    if (priorKPIsCalculated) return cachedPriorKPIs;
+
+    // Use requestIdleCallback to not block
+    if (typeof requestIdleCallback !== 'undefined') {
+        requestIdleCallback(() => {
+            cachedPriorKPIs = calculatePriorPeriodKPIsSync();
+            priorKPIsCalculated = true;
+            // Update trend indicators if they exist
+            updatePriorKPIIndicators();
+        });
+    } else {
+        // Fallback for browsers without requestIdleCallback
+        setTimeout(() => {
+            cachedPriorKPIs = calculatePriorPeriodKPIsSync();
+            priorKPIsCalculated = true;
+            updatePriorKPIIndicators();
+        }, 100);
+    }
+    return null;
+}
+
+function calculatePriorPeriodKPIsSync() {
     // Determine the date range of current filtered data
     const dates = filteredData.map(r => r['G/L Date']).filter(Boolean).sort();
     if (dates.length === 0) return null;
@@ -96,41 +122,73 @@ function calculatePriorPeriodKPIs() {
     const duration = endDate - startDate;
 
     // Calculate prior period with same duration
-    const priorEnd = new Date(startDate.getTime() - 24 * 60 * 60 * 1000); // Day before start
+    const priorEnd = new Date(startDate.getTime() - 24 * 60 * 60 * 1000);
     const priorStart = new Date(priorEnd.getTime() - duration);
 
     const priorStartStr = priorStart.toISOString().split('T')[0];
     const priorEndStr = priorEnd.toISOString().split('T')[0];
 
-    // Filter raw data for prior period (applying same non-date filters)
-    const priorData = rawData.filter(row => {
-        if (!row['G/L Date'] || row['G/L Date'] < priorStartStr || row['G/L Date'] > priorEndStr) return false;
-        if (filters.jobType !== 'all' && row['Job Type'] !== filters.jobType) return false;
-        if (filters.divisions.length > 0 && !filters.divisions.includes(row['Division Name'])) return false;
-        if (filters.departments.length > 0 && !filters.departments.includes(row['Department'])) return false;
-        if (filters.deptCategories.length > 0 && !filters.deptCategories.includes(row['Dept_Category'])) return false;
-        if (filters.categories.length > 0 && !filters.categories.includes(row['Category'])) return false;
-        if (filters.docTypes.length > 0 && !filters.docTypes.includes(row['Document Type'])) return false;
-        return true;
-    });
-
-    if (priorData.length === 0) return null;
+    // Use Set for fast lookup
+    const divSet = filters.divisions.length > 0 ? new Set(filters.divisions) : null;
+    const deptSet = filters.departments.length > 0 ? new Set(filters.departments) : null;
+    const deptCatSet = filters.deptCategories.length > 0 ? new Set(filters.deptCategories) : null;
+    const docTypeSet = filters.docTypes.length > 0 ? new Set(filters.docTypes) : null;
 
     let gross = 0, alloc = 0;
     const months = new Set();
-    priorData.forEach(r => {
-        const amt = r['Actual Amount'] || 0;
-        const ct = String(r['Cost Type'] || '');
-        if (r['G/L Date']) months.add(r['G/L Date'].substring(0, 7));
+    const len = rawData.length;
+
+    for (let i = 0; i < len; i++) {
+        const row = rawData[i];
+        const glDate = row['G/L Date'];
+        if (!glDate || glDate < priorStartStr || glDate > priorEndStr) continue;
+        if (filters.jobType !== 'all' && row['Job Type'] !== filters.jobType) continue;
+        if (divSet && !divSet.has(row['Division Name'])) continue;
+        if (deptSet && !deptSet.has(row['Department'])) continue;
+        if (deptCatSet && !deptCatSet.has(row['Dept_Category'])) continue;
+        if (docTypeSet && !docTypeSet.has(row['Document Type'])) continue;
+
+        const amt = row['Actual Amount'] || 0;
+        const ct = String(row['Cost Type'] || '');
+        months.add(glDate.substring(0, 7));
         if (ct.startsWith('693')) alloc += amt; else gross += amt;
-    });
+    }
+
+    if (months.size === 0) return null;
 
     const net = gross + alloc;
     const monthCount = months.size || 1;
     return { gross, alloc, net, monthlyAvg: net / monthCount };
 }
 
+function updatePriorKPIIndicators() {
+    if (!cachedPriorKPIs || !cachedMetrics) return;
+    const kpis = cachedMetrics.kpis;
+    const prior = cachedPriorKPIs;
+
+    document.getElementById('kpiGrossTrend').innerHTML = formatTrendIndicator(kpis.gross, prior.gross);
+    document.getElementById('kpiAllocTrend').innerHTML = formatTrendIndicator(Math.abs(kpis.alloc), Math.abs(prior.alloc));
+    document.getElementById('kpiNetTrend').innerHTML = formatTrendIndicator(kpis.net, prior.net);
+    document.getElementById('kpiMonthlyTrend').innerHTML = formatTrendIndicator(kpis.monthlyAvg, prior.monthlyAvg);
+}
+
 function calculateKPIs() {
+    // Use cached metrics if available
+    if (cachedMetrics && cachedMetrics.kpis) {
+        // Reset prior period cache when filters change
+        priorKPIsCalculated = false;
+        cachedPriorKPIs = null;
+
+        // Schedule deferred prior period calculation
+        const priorKPIs = calculatePriorPeriodKPIsDeferred();
+
+        return {
+            ...cachedMetrics.kpis,
+            priorKPIs
+        };
+    }
+
+    // Fallback: calculate from scratch (shouldn't happen often)
     let gross = 0, alloc = 0, gaTotal = 0, inTotal = 0;
     const months = new Set();
     filteredData.forEach(r => {
@@ -148,15 +206,12 @@ function calculateKPIs() {
     const inPct = total !== 0 ? (inTotal / total * 100) : 0;
     const monthCount = months.size || 1;
 
-    // Calculate prior period for comparison
-    const priorKPIs = calculatePriorPeriodKPIs();
-
     return {
         gross, alloc, net, recoveryPct, gaPct, inPct,
         monthlyAvg: net / monthCount, monthCount,
         grossRecords: filteredData.filter(r => !String(r['Cost Type']||'').startsWith('693')).length,
         allocRecords: filteredData.filter(r => String(r['Cost Type']||'').startsWith('693')).length,
-        priorKPIs
+        priorKPIs: null
     };
 }
 

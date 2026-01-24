@@ -4,7 +4,6 @@ let rawData = [];
 let filteredData = [];
 let charts = {};
 let trendView = 'summary';
-let trendTopN = 8;
 
 let filters = {
     startDate: null,
@@ -13,7 +12,6 @@ let filters = {
     divisions: [],
     departments: [],
     deptCategories: [],
-    categories: [],
     docTypes: []
 };
 

@@ -12,7 +12,7 @@
         <p class="empty-state-suggestions">Try adjusting your filters:</p>
         <ul class="empty-state-tips" id="emptyStateTips">
             <li>Expand the date range</li>
-            <li>Select fewer divisions or departments</li>
+            <li>Select fewer divisions or dept categories</li>
             <li>Clear category filters</li>
         </ul>
         <button class="empty-state-btn" onclick="clearFilters()">Clear All Filters</button>
@@ -31,17 +31,11 @@
             <div class="chart-controls">
                 <div class="chart-control-group">
                     <button class="chart-control-btn active" data-trend-view="summary">Summary</button>
-                    <button class="chart-control-btn" data-trend-view="by-dept">By Dept</button>
                     <button class="chart-control-btn" data-trend-view="by-division">By Division</button>
-                    <button class="chart-control-btn" data-trend-view="by-category">By Category</button>
+                    <button class="chart-control-btn" data-trend-view="by-department">By Dept</button>
+                    <button class="chart-control-btn" data-trend-view="by-deptcat">By Dept Cat</button>
                     <button class="chart-control-btn" data-trend-view="by-jobtype">GA vs IN</button>
                 </div>
-                <select class="chart-control-select" id="trendTopN" title="Number of items to show">
-                    <option value="5">Top 5</option>
-                    <option value="8" selected>Top 8</option>
-                    <option value="10">Top 10</option>
-                    <option value="15">Top 15</option>
-                </select>
                 <button class="chart-expand-btn" data-chart-id="monthlyTrendChart" title="Expand chart">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
@@ -58,42 +52,76 @@
                 <div class="comparison-sidebar-header">
                     <div class="sidebar-title">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
-                        Period Compare
-                    </div>
-                    <div class="preset-pills">
-                        <button class="preset-pill" data-preset="mom">MoM</button>
-                        <button class="preset-pill" data-preset="qoq">QoQ</button>
-                        <button class="preset-pill" data-preset="yoy">YoY</button>
+                        Compare Periods
                     </div>
                 </div>
-                <div class="comparison-periods-compact">
-                    <div class="period-block period-a">
-                        <div class="period-indicator">A</div>
-                        <div class="period-fields">
-                            <input type="date" class="period-date" id="periodAStartDate" title="Period A Start">
-                            <input type="date" class="period-date" id="periodAEndDate" title="Period A End">
+
+                <!-- Period Type Toggle -->
+                <div class="period-type-toggle">
+                    <button class="period-type-btn active" data-period-type="month">Month</button>
+                    <button class="period-type-btn" data-period-type="quarter">Quarter</button>
+                    <button class="period-type-btn" data-period-type="year">Year</button>
+                </div>
+
+                <!-- Period Selection -->
+                <div class="period-selectors">
+                    <div class="period-selector period-a">
+                        <span class="period-label">Period A</span>
+                        <select class="period-select" id="periodASelect">
+                            <option value="">Select...</option>
+                        </select>
+                    </div>
+                    <div class="period-vs">vs</div>
+                    <div class="period-selector period-b">
+                        <span class="period-label">Period B</span>
+                        <select class="period-select" id="periodBSelect">
+                            <option value="">Select...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="comparison-warnings" id="comparisonWarnings" style="display: none;"></div>
+
+                <!-- Shared Filters (apply to both periods) -->
+                <div class="comparison-filters-section">
+                    <span class="filters-label">Filter both periods by:</span>
+                    <div class="comparison-filter-row">
+                        <div class="comparison-multiselect" id="compareDivisionsContainer">
+                            <button class="multiselect-trigger" id="compareDivisionsTrigger">
+                                <span class="multiselect-text">All Divisions</span>
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="multiselect-dropdown" id="compareDivisionsDropdown">
+                                <div class="multiselect-options" id="compareDivisionsOptions"></div>
+                            </div>
                         </div>
                     </div>
-                    <div class="period-block period-b">
-                        <div class="period-indicator">B</div>
-                        <div class="period-fields">
-                            <input type="date" class="period-date" id="periodBStartDate" title="Period B Start">
-                            <input type="date" class="period-date" id="periodBEndDate" title="Period B End">
+                    <div class="comparison-filter-row">
+                        <div class="comparison-multiselect" id="compareCategoriesContainer">
+                            <button class="multiselect-trigger" id="compareCategoriesTrigger">
+                                <span class="multiselect-text">All Categories</span>
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="multiselect-dropdown" id="compareCategoriesDropdown">
+                                <div class="multiselect-options" id="compareCategoriesOptions"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="comparison-filters-mini">
-                    <select class="compare-filter" id="periodADivisions" title="Period A Division"><option value="">All Div</option></select>
-                    <select class="compare-filter" id="periodBDivisions" title="Period B Division"><option value="">All Div</option></select>
-                    <select class="compare-filter" id="periodADeptCategories" title="Period A Dept Cat"><option value="">All Cat</option></select>
-                    <select class="compare-filter" id="periodBDeptCategories" title="Period B Dept Cat"><option value="">All Cat</option></select>
-                </div>
+
                 <button class="compare-apply-btn" id="applyComparisonBtn">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20,6 9,17 4,12"/></svg>
                     Compare
                 </button>
+
                 <!-- Comparison Results -->
                 <div class="comparison-results" id="comparisonResults">
+                    <div class="result-header">
+                        <span></span>
+                        <span class="result-header-a">A</span>
+                        <span class="result-header-b">B</span>
+                        <span class="result-header-var">Δ</span>
+                    </div>
                     <div class="result-row">
                         <span class="result-label">Gross</span>
                         <span class="result-a" id="compareGrossA">-</span>
@@ -124,88 +152,66 @@
         </div>
     </div>
 
-    <!-- Department Breakdown -->
-    <div class="chart-card tall">
-        <div class="chart-header">
-            <span class="chart-title">Cost by Department</span>
-            <button class="chart-expand-btn" data-chart-id="departmentChart" title="Expand chart">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
-                </svg>
-            </button>
+    <!-- Cost Explorer - Unified Data Exploration -->
+    <div class="chart-card full-width explorer-card">
+        <div class="chart-header explorer-header">
+            <div class="explorer-title-row">
+                <div class="chart-title-section">
+                    <span class="chart-title">Cost Explorer</span>
+                    <span class="chart-subtitle" id="explorerSubtitle">Division breakdown by value (Top 15)</span>
+                </div>
+                <div class="explorer-controls">
+                    <div class="explorer-dimensions">
+                        <button class="explorer-dim-btn active" data-explorer-dim="division">Division</button>
+                        <button class="explorer-dim-btn" data-explorer-dim="deptcat">Dept Cat</button>
+                        <button class="explorer-dim-btn" data-explorer-dim="costtype">Cost Type</button>
+                        <button class="explorer-dim-btn" data-explorer-dim="doctype">Doc Type</button>
+                        <button class="explorer-dim-btn" data-explorer-dim="department">Dept</button>
+                    </div>
+                    <div class="explorer-metrics">
+                        <button class="explorer-metric-btn active" data-explorer-metric="amount">$</button>
+                        <button class="explorer-metric-btn" data-explorer-metric="count">#</button>
+                    </div>
+                    <select class="explorer-select" id="explorerSort" title="Sort by">
+                        <option value="value">By Value</option>
+                        <option value="volume">By Volume</option>
+                        <option value="alpha">A-Z</option>
+                    </select>
+                    <select class="explorer-select" id="explorerLimit" title="Limit">
+                        <option value="10">Top 10</option>
+                        <option value="15" selected>Top 15</option>
+                        <option value="20">Top 20</option>
+                        <option value="0">All</option>
+                    </select>
+                    <button class="chart-expand-btn" data-chart-id="explorerChart" title="Expand chart">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
         </div>
         <div class="chart-container">
-            <canvas id="departmentChart"></canvas>
+            <canvas id="explorerChart"></canvas>
         </div>
-    </div>
-
-    <!-- Division Breakdown -->
-    <div class="chart-card tall">
-        <div class="chart-header">
-            <span class="chart-title">Cost by Division (Top 10)</span>
-            <button class="chart-expand-btn" data-chart-id="divisionChart" title="Expand chart">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
-                </svg>
-            </button>
-        </div>
-        <div class="chart-container">
-            <canvas id="divisionChart"></canvas>
-        </div>
-    </div>
-
-    <!-- Cost Category Donut -->
-    <div class="chart-card">
-        <div class="chart-header">
-            <span class="chart-title">Cost Categories</span>
-            <button class="chart-expand-btn" data-chart-id="categoryChart" title="Expand chart">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
-                </svg>
-            </button>
-        </div>
-        <div class="chart-container">
-            <canvas id="categoryChart"></canvas>
-        </div>
-    </div>
-
-    <!-- Document Type Distribution -->
-    <div class="chart-card">
-        <div class="chart-header">
-            <span class="chart-title">Transaction Types (Top 10)</span>
-            <button class="chart-expand-btn" data-chart-id="docTypeChart" title="Expand chart">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
-                </svg>
-            </button>
-        </div>
-        <div class="chart-container">
-            <canvas id="docTypeChart"></canvas>
-        </div>
-    </div>
-
-    <!-- Top Cost Types -->
-    <div class="chart-card full-width tall">
-        <div class="chart-header">
-            <span class="chart-title">Top 15 Cost Types</span>
-            <button class="chart-expand-btn" data-chart-id="costTypeChart" title="Expand chart">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
-                </svg>
-            </button>
-        </div>
-        <div class="chart-container">
-            <canvas id="costTypeChart"></canvas>
+        <div class="explorer-footer" id="explorerFooter">
+            <span class="explorer-stat"><strong>0</strong> items</span>
+            <span class="explorer-stat"><strong>$0</strong> total</span>
+            <span class="explorer-stat"><strong>0</strong> transactions</span>
         </div>
     </div>
 </section>
 
-<!-- Hidden comparison filter selects for JS compatibility -->
+<!-- Hidden elements for legacy JS compatibility -->
 <div style="display:none">
-    <select id="periodADepartments"></select>
-    <select id="periodBDepartments"></select>
-    <select id="periodACategories"></select>
-    <select id="periodBCategories"></select>
     <select id="periodADocTypes"></select>
     <select id="periodBDocTypes"></select>
+    <input type="month" id="periodAMonth">
+    <input type="month" id="periodBMonth">
+    <select id="periodAQuarter"></select>
+    <select id="periodBQuarter"></select>
+    <select id="periodADivisions"></select>
+    <select id="periodBDivisions"></select>
+    <select id="periodADeptCategories"></select>
+    <select id="periodBDeptCategories"></select>
 </div>

@@ -17,12 +17,6 @@ function updateEmptyState() {
         if (filters.divisions.length > 0) {
             tips.push(`Remove some of the ${filters.divisions.length} selected divisions`);
         }
-        if (filters.departments.length > 0) {
-            tips.push(`Remove some of the ${filters.departments.length} selected departments`);
-        }
-        if (filters.categories.length > 0) {
-            tips.push(`Clear the ${filters.categories.length} category filter(s)`);
-        }
         if (filters.jobType !== 'all') {
             tips.push(`Remove the "${filters.jobType}" job type filter`);
         }
@@ -40,7 +34,8 @@ function updateEmptyState() {
 }
 
 function updateDashboard() {
-    const kpis = calculateKPIs();
+    // Use cached metrics if available (from single-pass computation)
+    const kpis = cachedMetrics ? cachedMetrics.kpis : calculateKPIs();
     updateKPIs(kpis);
     document.getElementById('recordCount').textContent = `${filteredData.length.toLocaleString()} records`;
 
@@ -52,13 +47,12 @@ function updateDashboard() {
     // Check for empty state
     updateEmptyState();
 
+    // Progressive rendering - defer charts to next frame
     if (filteredData.length > 0) {
-        renderMonthlyTrend();
-        renderDepartmentChart();
-        renderDivisionChart();
-        renderCategoryChart();
-        renderDocTypeChart();
-        renderCostTypeChart();
+        requestAnimationFrame(() => {
+            renderMonthlyTrend();
+            renderExplorerChart();
+        });
     }
 }
 
@@ -68,47 +62,93 @@ function setupFilters() {
     const divisions = [...new Set(rawData.map(r => r['Division Name']).filter(Boolean))].sort();
     const departments = [...new Set(rawData.map(r => r['Department']).filter(Boolean))].sort();
     const deptCategories = [...new Set(rawData.map(r => r['Dept_Category']).filter(Boolean))].sort();
-    const categories = [...new Set(rawData.map(r => r['Category']).filter(Boolean))].sort();
     const docTypes = [...new Set(rawData.map(r => r['Document Type']).filter(Boolean))].sort();
+
+    // Store totals for "X of Y" display
+    filterTotals.divisions = divisions.length;
+    filterTotals.departments = departments.length;
+    filterTotals.deptCategories = deptCategories.length;
+    filterTotals.docTypes = docTypes.length;
 
     populateMultiselect(document.getElementById('divisionOptions'), divisions, 'divisions');
     populateMultiselect(document.getElementById('departmentOptions'), departments, 'departments');
-    populateMultiselect(document.getElementById('deptCategoryOptions'), deptCategories, 'deptCategories');
-    populateMultiselect(document.getElementById('categoryOptions'), categories, 'categories');
     populateMultiselect(document.getElementById('docTypeOptions'), docTypes, 'docTypes');
 
     setupMultiselect('divisionMultiselect', 'divisionTrigger', 'divisionDropdown', 'divisionOptions', 'divisions');
     setupMultiselect('departmentMultiselect', 'departmentTrigger', 'departmentDropdown', 'departmentOptions', 'departments');
-    setupMultiselect('deptCategoryMultiselect', 'deptCategoryTrigger', 'deptCategoryDropdown', 'deptCategoryOptions', 'deptCategories');
-    setupMultiselect('categoryMultiselect', 'categoryTrigger', 'categoryDropdown', 'categoryOptions', 'categories');
     setupMultiselect('docTypeMultiselect', 'docTypeTrigger', 'docTypeDropdown', 'docTypeOptions', 'docTypes');
+
+    // Setup Dept Category as inline chip toggles
+    setupDeptCategoryChips(deptCategories);
+
+    // Setup Job Type toggle buttons
+    setupJobTypeToggle();
 
     document.getElementById('startDate').addEventListener('change', e => {
         filters.startDate = e.target.value || null;
         document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
-        updateFilterPreview();
+        debouncedApplyFilters();
     });
     document.getElementById('endDate').addEventListener('change', e => {
         filters.endDate = e.target.value || null;
         document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
-        updateFilterPreview();
-    });
-    document.getElementById('jobTypeFilter').addEventListener('change', e => {
-        filters.jobType = e.target.value;
-        updateFilterPreview();
+        debouncedApplyFilters();
     });
 
     // Date preset buttons
     document.querySelectorAll('.preset-btn').forEach(btn => {
         btn.addEventListener('click', () => applyDatePreset(btn.dataset.preset));
     });
-    document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
     document.getElementById('clearFiltersBtn').addEventListener('click', clearFilters);
 
     // Close dropdowns when clicking outside
-    document.addEventListener('click', () => {
-        document.querySelectorAll('.multiselect-dropdown.open').forEach(d => d.classList.remove('open'));
-        document.querySelectorAll('.multiselect-trigger.active').forEach(t => t.classList.remove('active'));
+    document.addEventListener('click', (e) => {
+        // Don't close if clicking inside a dropdown
+        if (e.target.closest('.mini-dropdown') || e.target.closest('.mini-trigger')) return;
+        document.querySelectorAll('.mini-dropdown.open').forEach(d => d.classList.remove('open'));
+        document.querySelectorAll('.mini-trigger.active').forEach(t => t.classList.remove('active'));
+    });
+}
+
+function setupDeptCategoryChips(categories) {
+    const container = document.getElementById('deptCategoryChips');
+    if (!container) return;
+
+    container.innerHTML = categories.map(cat => `
+        <button class="chip-toggle" data-value="${escapeHtml(cat)}">${escapeHtml(cat)}</button>
+    `).join('');
+
+    container.addEventListener('click', (e) => {
+        const btn = e.target.closest('.chip-toggle');
+        if (!btn) return;
+
+        const value = btn.dataset.value;
+        btn.classList.toggle('active');
+
+        if (btn.classList.contains('active')) {
+            if (!filters.deptCategories.includes(value)) {
+                filters.deptCategories.push(value);
+            }
+        } else {
+            filters.deptCategories = filters.deptCategories.filter(v => v !== value);
+        }
+
+        debouncedApplyFilters();
+    });
+}
+
+function setupJobTypeToggle() {
+    const container = document.getElementById('jobTypeToggle');
+    if (!container) return;
+
+    container.addEventListener('click', (e) => {
+        const btn = e.target.closest('.pill-btn');
+        if (!btn) return;
+
+        container.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filters.jobType = btn.dataset.value;
+        debouncedApplyFilters();
     });
 }
 
@@ -120,10 +160,6 @@ function setupTrendControls() {
             trendView = btn.dataset.trendView;
             renderMonthlyTrend();
         });
-    });
-    document.getElementById('trendTopN').addEventListener('change', e => {
-        trendTopN = parseInt(e.target.value);
-        renderMonthlyTrend();
     });
 }
 
@@ -160,6 +196,7 @@ async function handlePassword() {
         document.getElementById('dashboard').classList.add('visible');
         setupFilters();
         setupTrendControls();
+        setupExplorerControls();
         setupDrill();
         setupComparisonListeners();
         setupModals();
@@ -220,13 +257,6 @@ document.addEventListener('keydown', e => {
             // Focus drill search if modal is open, otherwise no-op
             if (isModalOpen) {
                 document.getElementById('drillSearchInput').focus();
-            }
-            break;
-        case 'a':
-        case 'A':
-            if (!e.ctrlKey && !e.metaKey) {
-                e.preventDefault();
-                applyFilters();
             }
             break;
         case 'c':

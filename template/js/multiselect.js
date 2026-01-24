@@ -34,7 +34,7 @@ function setupMultiselect(containerId, triggerId, dropdownId, optionsId, filterK
             optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = action === 'all');
             filters[filterKey] = action === 'all' ? [...optionsContainer.querySelectorAll('input[type="checkbox"]')].map(cb => cb.value) : [];
             updateMultiselectTriggers();
-            if (typeof updateFilterPreview === 'function') updateFilterPreview();
+            if (typeof debouncedApplyFilters === 'function') debouncedApplyFilters();
         });
     });
 }
@@ -45,7 +45,7 @@ function populateMultiselect(optionsContainer, values, filterKey) {
         cb.addEventListener('change', () => {
             filters[filterKey] = [...optionsContainer.querySelectorAll('input[type="checkbox"]:checked')].map(c => c.value);
             updateMultiselectTriggers();
-            if (typeof updateFilterPreview === 'function') updateFilterPreview();
+            if (typeof debouncedApplyFilters === 'function') debouncedApplyFilters();
         });
     });
 }

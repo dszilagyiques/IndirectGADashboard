@@ -3,14 +3,22 @@
 let comparisonMode = false;
 let periodAData = [];
 let periodBData = [];
+let currentPeriodType = 'month'; // 'month', 'quarter', 'year'
+
+// Available periods extracted from data
+let availableMonths = [];
+let availableQuarters = [];
+let availableYears = [];
+
+// Shared filter selections
+let selectedDivisions = [];
+let selectedCategories = [];
 
 let periodA = {
     startDate: null,
     endDate: null,
     divisions: [],
-    departments: [],
     deptCategories: [],
-    categories: [],
     docTypes: []
 };
 
@@ -18,141 +26,336 @@ let periodB = {
     startDate: null,
     endDate: null,
     divisions: [],
-    departments: [],
     deptCategories: [],
-    categories: [],
     docTypes: []
 };
 
 function initComparisonFilters() {
+    extractAvailablePeriods();
+    populatePeriodSelects();
+    initComparisonMultiselects();
+    setDefaultPeriodSelections();
+}
+
+function extractAvailablePeriods() {
+    const dates = rawData.map(r => r['G/L Date']).filter(Boolean).sort();
+    if (dates.length === 0) return;
+
+    // Extract unique months with data
+    const monthSet = new Set();
+    const quarterSet = new Set();
+    const yearSet = new Set();
+
+    dates.forEach(date => {
+        const year = date.substring(0, 4);
+        const month = date.substring(0, 7);
+        const q = Math.ceil(parseInt(date.substring(5, 7)) / 3);
+
+        monthSet.add(month);
+        quarterSet.add(`${year}-Q${q}`);
+        yearSet.add(year);
+    });
+
+    // Convert to sorted arrays (most recent first)
+    availableMonths = [...monthSet].sort().reverse();
+    availableQuarters = [...quarterSet].sort().reverse();
+    availableYears = [...yearSet].sort().reverse();
+}
+
+function formatMonthOption(monthStr) {
+    const [year, month] = monthStr.split('-');
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${monthNames[parseInt(month) - 1]} ${year}`;
+}
+
+function formatQuarterOption(quarterStr) {
+    return quarterStr.replace('-Q', ' Q');
+}
+
+function populatePeriodSelects() {
+    const selectA = document.getElementById('periodASelect');
+    const selectB = document.getElementById('periodBSelect');
+    if (!selectA || !selectB) return;
+
+    let options = [];
+
+    switch (currentPeriodType) {
+        case 'month':
+            options = availableMonths.map(m => ({
+                value: m,
+                label: formatMonthOption(m)
+            }));
+            break;
+        case 'quarter':
+            options = availableQuarters.map(q => ({
+                value: q,
+                label: formatQuarterOption(q)
+            }));
+            break;
+        case 'year':
+            options = availableYears.map(y => ({
+                value: y,
+                label: y
+            }));
+            break;
+    }
+
+    const optionsHtml = '<option value="">Select...</option>' +
+        options.map(o => `<option value="${o.value}">${o.label}</option>`).join('');
+
+    selectA.innerHTML = optionsHtml;
+    selectB.innerHTML = optionsHtml;
+}
+
+function setDefaultPeriodSelections() {
+    const selectA = document.getElementById('periodASelect');
+    const selectB = document.getElementById('periodBSelect');
+    if (!selectA || !selectB) return;
+
+    // Set defaults based on period type
+    switch (currentPeriodType) {
+        case 'month':
+            if (availableMonths.length >= 2) {
+                selectB.value = availableMonths[0]; // Most recent
+                selectA.value = availableMonths[1]; // Second most recent
+            } else if (availableMonths.length === 1) {
+                selectB.value = availableMonths[0];
+            }
+            break;
+        case 'quarter':
+            if (availableQuarters.length >= 2) {
+                selectB.value = availableQuarters[0];
+                selectA.value = availableQuarters[1];
+            } else if (availableQuarters.length === 1) {
+                selectB.value = availableQuarters[0];
+            }
+            break;
+        case 'year':
+            if (availableYears.length >= 2) {
+                selectB.value = availableYears[0];
+                selectA.value = availableYears[1];
+            } else if (availableYears.length === 1) {
+                selectB.value = availableYears[0];
+            }
+            break;
+    }
+
+    updatePeriodFromSelects();
+    updateComparisonWarnings();
+}
+
+function updatePeriodFromSelects() {
+    const selectA = document.getElementById('periodASelect');
+    const selectB = document.getElementById('periodBSelect');
+    if (!selectA || !selectB) return;
+
+    const valA = selectA.value;
+    const valB = selectB.value;
+
+    if (valA) {
+        const range = getPeriodDateRange(valA, currentPeriodType);
+        periodA.startDate = range.start;
+        periodA.endDate = range.end;
+    } else {
+        periodA.startDate = null;
+        periodA.endDate = null;
+    }
+
+    if (valB) {
+        const range = getPeriodDateRange(valB, currentPeriodType);
+        periodB.startDate = range.start;
+        periodB.endDate = range.end;
+    } else {
+        periodB.startDate = null;
+        periodB.endDate = null;
+    }
+}
+
+function getPeriodDateRange(value, type) {
+    switch (type) {
+        case 'month':
+            return {
+                start: value + '-01',
+                end: getLastDayOfMonth(value)
+            };
+        case 'quarter':
+            const [year, qStr] = value.split('-Q');
+            const q = parseInt(qStr);
+            const startMonth = (q - 1) * 3 + 1;
+            const endMonth = q * 3;
+            return {
+                start: `${year}-${String(startMonth).padStart(2, '0')}-01`,
+                end: getLastDayOfMonth(`${year}-${String(endMonth).padStart(2, '0')}`)
+            };
+        case 'year':
+            return {
+                start: `${value}-01-01`,
+                end: `${value}-12-31`
+            };
+        default:
+            return { start: null, end: null };
+    }
+}
+
+function getLastDayOfMonth(monthStr) {
+    const [year, month] = monthStr.split('-').map(Number);
+    const lastDay = new Date(year, month, 0).getDate();
+    return `${monthStr}-${String(lastDay).padStart(2, '0')}`;
+}
+
+function initComparisonMultiselects() {
     const divisions = [...new Set(rawData.map(r => r['Division Name']).filter(Boolean))].sort();
     const deptCategories = [...new Set(rawData.map(r => r['Dept_Category']).filter(Boolean))].sort();
 
-    // Populate comparison filter dropdowns
-    populateCompareSelect('periodADivisions', divisions, 'All Div');
-    populateCompareSelect('periodBDivisions', divisions, 'All Div');
-    populateCompareSelect('periodADeptCategories', deptCategories, 'All Cat');
-    populateCompareSelect('periodBDeptCategories', deptCategories, 'All Cat');
-
-    // Also populate hidden selects for JS compatibility
-    const departments = [...new Set(rawData.map(r => r['Department']).filter(Boolean))].sort();
-    const categories = [...new Set(rawData.map(r => r['Category']).filter(Boolean))].sort();
-    const docTypes = [...new Set(rawData.map(r => r['Document Type']).filter(Boolean))].sort();
-
-    populateCompareSelect('periodADepartments', departments, 'All');
-    populateCompareSelect('periodBDepartments', departments, 'All');
-    populateCompareSelect('periodACategories', categories, 'All');
-    populateCompareSelect('periodBCategories', categories, 'All');
-    populateCompareSelect('periodADocTypes', docTypes, 'All');
-    populateCompareSelect('periodBDocTypes', docTypes, 'All');
-
-    // Set default dates
-    setDefaultComparisonDates();
-}
-
-function populateCompareSelect(selectId, options, placeholder) {
-    const select = document.getElementById(selectId);
-    if (!select) return;
-    select.innerHTML = `<option value="">${placeholder}</option>` + options.map(o => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('');
-}
-
-function setDefaultComparisonDates() {
-    const dates = rawData.map(r => r['G/L Date']).filter(Boolean).sort();
-    if (dates.length === 0) return;
-
-    const maxDate = dates[dates.length - 1];
-    const maxDateObj = new Date(maxDate);
-
-    // Period B: Current month
-    const periodBEnd = maxDate;
-    const periodBStart = new Date(maxDateObj.getFullYear(), maxDateObj.getMonth(), 1).toISOString().slice(0, 10);
-
-    // Period A: Previous month
-    const periodAEndObj = new Date(maxDateObj.getFullYear(), maxDateObj.getMonth(), 0);
-    const periodAEnd = periodAEndObj.toISOString().slice(0, 10);
-    const periodAStart = new Date(periodAEndObj.getFullYear(), periodAEndObj.getMonth(), 1).toISOString().slice(0, 10);
-
-    document.getElementById('periodAStartDate').value = periodAStart;
-    document.getElementById('periodAEndDate').value = periodAEnd;
-    document.getElementById('periodBStartDate').value = periodBStart;
-    document.getElementById('periodBEndDate').value = periodBEnd;
-
-    periodA.startDate = periodAStart;
-    periodA.endDate = periodAEnd;
-    periodB.startDate = periodBStart;
-    periodB.endDate = periodBEnd;
-}
-
-function applyComparisonPreset(presetType) {
-    const dates = rawData.map(r => r['G/L Date']).filter(Boolean).sort();
-    if (dates.length === 0) return;
-
-    const maxDate = dates[dates.length - 1];
-    const maxDateObj = new Date(maxDate);
-
-    // Update preset pill states
-    document.querySelectorAll('.preset-pill').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`[data-preset="${presetType}"]`)?.classList.add('active');
-
-    let aStart, aEnd, bStart, bEnd;
-
-    switch (presetType) {
-        case 'yoy':
-            bEnd = maxDate;
-            bStart = new Date(maxDateObj.getFullYear(), 0, 1).toISOString().slice(0, 10);
-            aEnd = new Date(maxDateObj.getFullYear() - 1, maxDateObj.getMonth(), maxDateObj.getDate()).toISOString().slice(0, 10);
-            aStart = new Date(maxDateObj.getFullYear() - 1, 0, 1).toISOString().slice(0, 10);
-            break;
-
-        case 'mom':
-            bEnd = maxDate;
-            bStart = new Date(maxDateObj.getFullYear(), maxDateObj.getMonth(), 1).toISOString().slice(0, 10);
-            const prevMonthEnd = new Date(maxDateObj.getFullYear(), maxDateObj.getMonth(), 0);
-            aEnd = prevMonthEnd.toISOString().slice(0, 10);
-            aStart = new Date(prevMonthEnd.getFullYear(), prevMonthEnd.getMonth(), 1).toISOString().slice(0, 10);
-            break;
-
-        case 'qoq':
-            const currentQ = Math.floor(maxDateObj.getMonth() / 3);
-            bStart = new Date(maxDateObj.getFullYear(), currentQ * 3, 1).toISOString().slice(0, 10);
-            bEnd = maxDate;
-
-            const prevQYear = currentQ === 0 ? maxDateObj.getFullYear() - 1 : maxDateObj.getFullYear();
-            const prevQ = currentQ === 0 ? 3 : currentQ - 1;
-            aStart = new Date(prevQYear, prevQ * 3, 1).toISOString().slice(0, 10);
-            aEnd = new Date(prevQYear, prevQ * 3 + 3, 0).toISOString().slice(0, 10);
-            break;
-
-        default:
-            return;
+    // Populate divisions multiselect
+    const divisionsOptions = document.getElementById('compareDivisionsOptions');
+    if (divisionsOptions) {
+        divisionsOptions.innerHTML = divisions.map(d => `
+            <div class="multiselect-option" data-value="${escapeHtml(d)}">
+                <span class="multiselect-checkbox">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
+                </span>
+                <span>${escapeHtml(d)}</span>
+            </div>
+        `).join('');
     }
 
-    document.getElementById('periodAStartDate').value = aStart;
-    document.getElementById('periodAEndDate').value = aEnd;
-    document.getElementById('periodBStartDate').value = bStart;
-    document.getElementById('periodBEndDate').value = bEnd;
+    // Populate categories multiselect
+    const categoriesOptions = document.getElementById('compareCategoriesOptions');
+    if (categoriesOptions) {
+        categoriesOptions.innerHTML = deptCategories.map(c => `
+            <div class="multiselect-option" data-value="${escapeHtml(c)}">
+                <span class="multiselect-checkbox">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
+                </span>
+                <span>${escapeHtml(c)}</span>
+            </div>
+        `).join('');
+    }
 
-    periodA.startDate = aStart;
-    periodA.endDate = aEnd;
-    periodB.startDate = bStart;
-    periodB.endDate = bEnd;
+    // Setup multiselect interactions
+    setupComparisonMultiselect('compareDivisions', () => {
+        updateMultiselectText('compareDivisions', selectedDivisions, 'All Divisions');
+    });
+    setupComparisonMultiselect('compareCategories', () => {
+        updateMultiselectText('compareCategories', selectedCategories, 'All Categories');
+    });
 }
 
-function collectPeriodFilters(period, prefix) {
-    period.startDate = document.getElementById(`${prefix}StartDate`).value || null;
-    period.endDate = document.getElementById(`${prefix}EndDate`).value || null;
-    period.divisions = getSelectValues(`${prefix}Divisions`);
-    period.departments = getSelectValues(`${prefix}Departments`);
-    period.deptCategories = getSelectValues(`${prefix}DeptCategories`);
-    period.categories = getSelectValues(`${prefix}Categories`);
-    period.docTypes = getSelectValues(`${prefix}DocTypes`);
+function setupComparisonMultiselect(baseName, onChange) {
+    const container = document.getElementById(`${baseName}Container`);
+    const trigger = document.getElementById(`${baseName}Trigger`);
+    const dropdown = document.getElementById(`${baseName}Dropdown`);
+    const options = document.getElementById(`${baseName}Options`);
+
+    if (!container || !trigger || !dropdown || !options) return;
+
+    // Toggle dropdown
+    trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+
+        // Close other multiselects
+        document.querySelectorAll('.comparison-multiselect.open').forEach(el => {
+            if (el !== container) el.classList.remove('open');
+        });
+
+        container.classList.toggle('open');
+    });
+
+    // Handle option clicks
+    options.addEventListener('click', (e) => {
+        const option = e.target.closest('.multiselect-option');
+        if (!option) return;
+
+        const value = option.dataset.value;
+        const isSelected = option.classList.contains('selected');
+        const selections = baseName === 'compareDivisions' ? selectedDivisions : selectedCategories;
+
+        if (isSelected) {
+            option.classList.remove('selected');
+            const idx = selections.indexOf(value);
+            if (idx > -1) selections.splice(idx, 1);
+        } else {
+            option.classList.add('selected');
+            selections.push(value);
+        }
+
+        onChange();
+    });
+
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+        if (!container.contains(e.target)) {
+            container.classList.remove('open');
+        }
+    });
 }
 
-function getSelectValues(selectId) {
-    const select = document.getElementById(selectId);
-    if (!select) return [];
-    const val = select.value;
-    return val ? [val] : [];
+function updateMultiselectText(baseName, selections, defaultText) {
+    const trigger = document.getElementById(`${baseName}Trigger`);
+    if (!trigger) return;
+
+    const textEl = trigger.querySelector('.multiselect-text');
+    if (!textEl) return;
+
+    if (selections.length === 0) {
+        textEl.textContent = defaultText;
+    } else if (selections.length === 1) {
+        textEl.textContent = selections[0];
+    } else {
+        textEl.textContent = `${selections.length} selected`;
+    }
+}
+
+function updateComparisonWarnings() {
+    const warningsEl = document.getElementById('comparisonWarnings');
+    if (!warningsEl) return;
+
+    const warnings = [];
+    const selectA = document.getElementById('periodASelect');
+    const selectB = document.getElementById('periodBSelect');
+
+    const valA = selectA?.value;
+    const valB = selectB?.value;
+
+    if (!valA && !valB) {
+        warningsEl.innerHTML = '';
+        warningsEl.style.display = 'none';
+        return;
+    }
+
+    // Check if periods are the same
+    if (valA && valB && valA === valB) {
+        warnings.push('Both periods are the same');
+    }
+
+    // Check if Period A has data
+    if (valA) {
+        const range = getPeriodDateRange(valA, currentPeriodType);
+        const testPeriod = { startDate: range.start, endDate: range.end, divisions: [], deptCategories: [], docTypes: [] };
+        const data = filterDataForPeriod(rawData, testPeriod);
+        if (data.length === 0) {
+            warnings.push(`Period A has no data`);
+        }
+    }
+
+    // Check if Period B has data
+    if (valB) {
+        const range = getPeriodDateRange(valB, currentPeriodType);
+        const testPeriod = { startDate: range.start, endDate: range.end, divisions: [], deptCategories: [], docTypes: [] };
+        const data = filterDataForPeriod(rawData, testPeriod);
+        if (data.length === 0) {
+            warnings.push(`Period B has no data`);
+        }
+    }
+
+    if (warnings.length > 0) {
+        warningsEl.innerHTML = warnings.map(w => `<span class="comparison-warning">${w}</span>`).join('');
+        warningsEl.style.display = 'flex';
+    } else {
+        warningsEl.innerHTML = '';
+        warningsEl.style.display = 'none';
+    }
 }
 
 function filterDataForPeriod(data, period) {
@@ -160,17 +363,23 @@ function filterDataForPeriod(data, period) {
         if (period.startDate && row['G/L Date'] < period.startDate) return false;
         if (period.endDate && row['G/L Date'] > period.endDate) return false;
         if (period.divisions.length > 0 && !period.divisions.includes(row['Division Name'])) return false;
-        if (period.departments.length > 0 && !period.departments.includes(row['Department'])) return false;
         if (period.deptCategories.length > 0 && !period.deptCategories.includes(row['Dept_Category'])) return false;
-        if (period.categories.length > 0 && !period.categories.includes(row['Category'])) return false;
         if (period.docTypes.length > 0 && !period.docTypes.includes(row['Document Type'])) return false;
         return true;
     });
 }
 
 function applyComparison() {
-    collectPeriodFilters(periodA, 'periodA');
-    collectPeriodFilters(periodB, 'periodB');
+    updatePeriodFromSelects();
+
+    // Apply shared filters to both periods
+    periodA.divisions = [...selectedDivisions];
+    periodA.deptCategories = [...selectedCategories];
+    periodA.docTypes = [];
+
+    periodB.divisions = [...selectedDivisions];
+    periodB.deptCategories = [...selectedCategories];
+    periodB.docTypes = [];
 
     periodAData = filterDataForPeriod(rawData, periodA);
     periodBData = filterDataForPeriod(rawData, periodB);
@@ -181,17 +390,32 @@ function applyComparison() {
 }
 
 function clearComparison() {
-    document.querySelectorAll('.preset-pill').forEach(btn => btn.classList.remove('active'));
-
     comparisonMode = false;
     periodAData = [];
     periodBData = [];
+    selectedDivisions = [];
+    selectedCategories = [];
 
-    periodA = { startDate: null, endDate: null, divisions: [], departments: [], deptCategories: [], categories: [], docTypes: [] };
-    periodB = { startDate: null, endDate: null, divisions: [], departments: [], deptCategories: [], categories: [], docTypes: [] };
+    periodA = { startDate: null, endDate: null, divisions: [], deptCategories: [], docTypes: [] };
+    periodB = { startDate: null, endDate: null, divisions: [], deptCategories: [], docTypes: [] };
 
-    setDefaultComparisonDates();
+    // Reset multiselect UI
+    document.querySelectorAll('.comparison-multiselect .multiselect-option').forEach(opt => {
+        opt.classList.remove('selected');
+    });
+    updateMultiselectText('compareDivisions', [], 'All Divisions');
+    updateMultiselectText('compareCategories', [], 'All Categories');
+
+    setDefaultPeriodSelections();
     resetComparisonResults();
+
+    // Clear warnings
+    const warningsEl = document.getElementById('comparisonWarnings');
+    if (warningsEl) {
+        warningsEl.innerHTML = '';
+        warningsEl.style.display = 'none';
+    }
+
     updateDashboard();
 }
 
@@ -294,33 +518,53 @@ function updateVarianceDisplay(elementId, variance, positiveIsBad, isPercent = f
 }
 
 function updateComparisonCharts() {
+    // Only Monthly Trend shows period comparison
     renderMonthlyTrend();
-    renderDepartmentChart();
-    renderDivisionChart();
-    renderCategoryChart();
-    renderDocTypeChart();
-    renderCostTypeChart();
 }
 
 function setupComparisonListeners() {
-    document.getElementById('applyComparisonBtn')?.addEventListener('click', applyComparison);
-    document.getElementById('clearComparisonBtn')?.addEventListener('click', clearComparison);
-
-    // Preset pills
-    document.querySelectorAll('.preset-pill').forEach(btn => {
-        btn.addEventListener('click', () => applyComparisonPreset(btn.dataset.preset));
-    });
-
-    // Date change listeners
-    ['periodAStartDate', 'periodAEndDate', 'periodBStartDate', 'periodBEndDate'].forEach(id => {
-        document.getElementById(id)?.addEventListener('change', e => {
-            const prefix = id.startsWith('periodA') ? 'periodA' : 'periodB';
-            const period = prefix === 'periodA' ? periodA : periodB;
-            const field = id.includes('Start') ? 'startDate' : 'endDate';
-            period[field] = e.target.value || null;
+    // Period type toggle
+    document.querySelectorAll('.period-type-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.period-type-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentPeriodType = btn.dataset.periodType;
+            populatePeriodSelects();
+            setDefaultPeriodSelections();
         });
     });
 
-    // Initialize comparison filters
+    // Period select changes
+    ['periodASelect', 'periodBSelect'].forEach(id => {
+        document.getElementById(id)?.addEventListener('change', () => {
+            updatePeriodFromSelects();
+            updateComparisonWarnings();
+        });
+    });
+
+    // Apply and Reset buttons
+    document.getElementById('applyComparisonBtn')?.addEventListener('click', () => {
+        applyComparison();
+        updateComparisonWarnings();
+    });
+    document.getElementById('clearComparisonBtn')?.addEventListener('click', clearComparison);
+
+    // Initialize filters
     initComparisonFilters();
+}
+
+// Legacy function stubs for compatibility
+function formatMonthLabel(monthStr) {
+    if (!monthStr) return '';
+    const [year, month] = monthStr.split('-');
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${monthNames[parseInt(month) - 1]} ${year}`;
+}
+
+function updatePeriodSummaries() {
+    // No longer needed in simplified UI
+}
+
+function populateQuarterSelects() {
+    // No longer needed - handled by populatePeriodSelects
 }

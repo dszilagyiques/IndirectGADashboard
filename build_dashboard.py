@@ -4,17 +4,26 @@ Indirect G&A Cost Dashboard Builder
 
 Processes Excel data, encrypts it, and builds a single-file HTML dashboard.
 Assembles modular source files (CSS, HTML, JS) into the final output.
+
+OPTIMIZED VERSION:
+- Uses Polars + calamine (Rust) for 6-10x faster Excel reading
+- Caches processed data to skip unchanged Excel files
+- Parallel file I/O for template assembly
 """
 
+import argparse
 import base64
+import hashlib
 import json
 import os
+import pickle
 import secrets
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-import pandas as pd
+import polars as pl
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
@@ -23,6 +32,7 @@ from cryptography.hazmat.primitives import hashes
 INPUT_DIR = "input"
 TEMPLATE_DIR = "template"
 OUTPUT_FILE = "outputs/Indirect G&A Dashboard.html"
+CACHE_DIR = ".build_cache"
 DASHBOARD_PASSWORD = os.environ.get('DASHBOARD_PASSWORD', 'indirectga2026')
 
 # Encryption parameters
@@ -34,7 +44,7 @@ KEY_LENGTH = 32
 # CSS files in load order
 CSS_ORDER = [
     'variables', 'base', 'password', 'layout', 'multiselect',
-    'kpi', 'charts',
+    'kpi', 'charts', 'explorer',
     'modal', 'modal-chart', 'modal-kpi', 'modal-import',
     'drillthrough', 'comparison', 'responsive'
 ]
@@ -48,9 +58,8 @@ HTML_ORDER = [
 
 # JS files in load order
 JS_ORDER = [
-    'config', 'state', 'utils', 'crypto', 'filters', 'kpi', 'insights',
-    'charts/monthly-trend', 'charts/department', 'charts/division',
-    'charts/category', 'charts/doctype', 'charts/costtype',
+    'config', 'state', 'utils', 'crypto', 'filters', 'kpi',
+    'charts/monthly-trend', 'charts/explorer',
     'drillthrough', 'multiselect', 'comparison',
     'modal-base', 'modal-chart', 'modal-kpi', 'modal-import',
     'init'
@@ -137,63 +146,160 @@ DEPARTMENT_CATEGORY_MAP = {
 
 
 def get_department(job_value) -> str:
-    """Extract department from job number (last 3 digits)."""
+    """Extract department from job number (last 3 digits). Returns 'code - description' format."""
     if pd.isna(job_value):
         return 'Unknown'
     job_str = str(int(job_value)) if isinstance(job_value, float) else str(job_value)
     dept_code = job_str[-3:]
-    return DEPARTMENT_MAP.get(dept_code, f'Unknown ({dept_code})')
+    dept_name = DEPARTMENT_MAP.get(dept_code)
+    if dept_name:
+        return f'{dept_code} - {dept_name}'
+    return f'Unknown ({dept_code})'
 
 
 def get_department_category(job_value) -> str:
     """Get department category from job number."""
-    if pd.isna(job_value):
+    if job_value is None:
         return 'Unknown'
     job_str = str(int(job_value)) if isinstance(job_value, float) else str(job_value)
     dept_code = job_str[-3:]
     return DEPARTMENT_CATEGORY_MAP.get(dept_code, 'Other')
 
 
-def excel_to_csv(excel_path: Path) -> tuple[str, int]:
+def file_hash(path: Path) -> str:
+    """Compute MD5 hash of a file for cache validation."""
+    return hashlib.md5(path.read_bytes()).hexdigest()
+
+
+def get_cached_csv(excel_path: Path, cache_dir: Path) -> tuple[str, int] | None:
+    """Try to load cached CSV if Excel file hasn't changed."""
+    cache_file = cache_dir / "csv_cache.pkl"
+    hash_file = cache_dir / "excel_hash.txt"
+
+    if not cache_file.exists() or not hash_file.exists():
+        return None
+
+    # Check if Excel file hash matches
+    current_hash = file_hash(excel_path)
+    cached_hash = hash_file.read_text().strip()
+
+    if current_hash != cached_hash:
+        return None
+
+    # Load cached data
+    try:
+        with open(cache_file, 'rb') as f:
+            cached = pickle.load(f)
+        print(f"  Using cached CSV (Excel unchanged)")
+        return cached['csv_data'], cached['record_count']
+    except Exception:
+        return None
+
+
+def save_csv_cache(csv_data: str, record_count: int, excel_path: Path, cache_dir: Path):
+    """Save processed CSV to cache."""
+    cache_dir.mkdir(exist_ok=True)
+
+    cache_file = cache_dir / "csv_cache.pkl"
+    hash_file = cache_dir / "excel_hash.txt"
+
+    with open(cache_file, 'wb') as f:
+        pickle.dump({'csv_data': csv_data, 'record_count': record_count}, f)
+
+    hash_file.write_text(file_hash(excel_path))
+
+
+def excel_to_csv(excel_path: Path, cache_dir: Path = None, use_cache: bool = True) -> tuple[str, int]:
     """
-    Read Excel file and convert to CSV string.
+    Read Excel file and convert to CSV string using Polars (optimized).
     Returns (csv_string, record_count).
+
+    Uses calamine engine (Rust-based) for 5-10x faster Excel reading.
+    Caches results to skip processing if Excel file unchanged.
     """
+    # Try cache first
+    if use_cache and cache_dir:
+        cached = get_cached_csv(excel_path, cache_dir)
+        if cached:
+            return cached
+
     print(f"Reading Excel file: {excel_path.name}")
 
-    # Read the Cost Code Detail Report sheet
-    df = pd.read_excel(excel_path, sheet_name='Cost Code Detail Report', engine='openpyxl')
+    # Read with Polars + calamine (Rust engine) - 5-10x faster than openpyxl
+    df = pl.read_excel(excel_path, sheet_name='Cost Code Detail Report', engine='calamine')
 
-    # Clean column names (remove newlines and extra spaces)
-    df.columns = [str(c).replace('\n', ' ').strip() for c in df.columns]
+    # Clean column names (remove newlines, extra spaces, normalize whitespace)
+    df = df.rename({col: ' '.join(col.split()) for col in df.columns})
 
-    print(f"  Original columns: {list(df.columns)}")
+    print(f"  Original columns: {df.columns}")
     print(f"  Original record count: {len(df):,}")
 
     # Filter out Grand Total row
     if 'Document Type' in df.columns:
-        df = df[df['Document Type'] != 'Grand Total']
+        df = df.filter(pl.col('Document Type') != 'Grand Total')
         print(f"  After removing Grand Total: {len(df):,}")
 
-    # Add derived columns
-    df['Category'] = df['Cost Type'].apply(categorize_cost_type)
-    df['Is_Allocation'] = df['Cost Type'].astype(str).str.startswith('693', na=False)
+    # Add derived columns using vectorized Polars expressions (much faster than apply)
+    cost_type_code = pl.col('Cost Type').cast(pl.Utf8).str.split(' - ').list.first().str.strip_chars()
 
-    # Add Department columns based on Job number
-    df['Department'] = df['Job'].apply(get_department)
-    df['Dept_Category'] = df['Job'].apply(get_department_category)
+    # Vectorized category assignment
+    category_expr = (
+        pl.when(cost_type_code.str.starts_with('61')).then(pl.lit('Labor Costs'))
+          .when(cost_type_code.str.starts_with('62')).then(pl.lit('Travel & Per Diem'))
+          .when(cost_type_code.str.starts_with('64')).then(pl.lit('Fleet & Materials'))
+          .when(cost_type_code.str.starts_with('65')).then(pl.lit('Facilities & Services'))
+          .when(cost_type_code.str.starts_with('67')).then(pl.lit('Equipment Costs'))
+          .when(cost_type_code.str.starts_with('693')).then(pl.lit('Allocation Credits'))
+          .when(cost_type_code.str.starts_with('69')).then(pl.lit('Other Allocations'))
+          .when(cost_type_code.str.starts_with('71') | cost_type_code.str.starts_with('72')).then(pl.lit('Corporate Overhead'))
+          .when(cost_type_code.str.starts_with('73') | cost_type_code.str.starts_with('74') | cost_type_code.str.starts_with('75')).then(pl.lit('G&A & Other'))
+          .otherwise(pl.lit('Other'))
+          .alias('Category')
+    )
 
-    # Ensure G/L Date is properly formatted
+    # Vectorized Is_Allocation
+    is_allocation_expr = cost_type_code.str.starts_with('693').alias('Is_Allocation')
+
+    # Vectorized Department extraction (last 3 digits of Job)
+    job_str = pl.col('Job').cast(pl.Utf8).str.replace_all(r'\.0$', '')
+    dept_code = job_str.str.slice(-3)
+
+    # Build department mapping expression
+    dept_expr = dept_code
+    for code, name in DEPARTMENT_MAP.items():
+        dept_expr = pl.when(dept_code == code).then(pl.lit(f'{code} - {name}')).otherwise(dept_expr)
+    dept_expr = pl.when(pl.col('Job').is_null()).then(pl.lit('Unknown')).otherwise(
+        pl.when(dept_expr == dept_code).then(pl.concat_str([pl.lit('Unknown ('), dept_code, pl.lit(')')])).otherwise(dept_expr)
+    ).alias('Department')
+
+    # Build dept_category mapping expression
+    dept_cat_expr = pl.lit('Other')
+    for code, cat in DEPARTMENT_CATEGORY_MAP.items():
+        dept_cat_expr = pl.when(dept_code == code).then(pl.lit(cat)).otherwise(dept_cat_expr)
+    dept_cat_expr = pl.when(pl.col('Job').is_null()).then(pl.lit('Unknown')).otherwise(dept_cat_expr).alias('Dept_Category')
+
+    df = df.with_columns([category_expr, is_allocation_expr, dept_expr, dept_cat_expr])
+
+    # Format G/L Date
     if 'G/L Date' in df.columns:
-        df['G/L Date'] = pd.to_datetime(df['G/L Date'], errors='coerce').dt.strftime('%Y-%m-%d')
+        df = df.with_columns(
+            pl.col('G/L Date').cast(pl.Date).dt.strftime('%Y-%m-%d').alias('G/L Date')
+        )
 
-    print(f"  Added Department column with {df['Department'].nunique()} unique departments")
-    print(f"  Department categories: {df['Dept_Category'].value_counts().to_dict()}")
+    print(f"  Added Department column with {df['Department'].n_unique()} unique departments")
+    dept_cat_counts = df['Dept_Category'].value_counts()
+    print(f"  Department categories: {dict(zip(dept_cat_counts['Dept_Category'].to_list(), dept_cat_counts['count'].to_list()))}")
 
     # Convert to CSV
-    csv_string = df.to_csv(index=False)
+    csv_string = df.write_csv()
+    record_count = len(df)
 
-    return csv_string, len(df)
+    # Save to cache
+    if cache_dir:
+        save_csv_cache(csv_string, record_count, excel_path, cache_dir)
+        print(f"  Cached CSV for future builds")
+
+    return csv_string, record_count
 
 
 def encrypt_csv_data(csv_data: str, password: str) -> dict:
@@ -237,9 +343,16 @@ def read_file(path: Path) -> str:
     return path.read_text(encoding='utf-8')
 
 
+def read_file_safe(path: Path) -> tuple[Path, str | None]:
+    """Read a file, return (path, content) or (path, None) if not found."""
+    if path.exists():
+        return path, path.read_text(encoding='utf-8')
+    return path, None
+
+
 def assemble_template(template_dir: Path) -> str:
     """
-    Assemble HTML from modular source files.
+    Assemble HTML from modular source files using parallel I/O.
 
     Combines:
     - CSS files from template/css/
@@ -252,36 +365,49 @@ def assemble_template(template_dir: Path) -> str:
     html_dir = template_dir / 'html'
     js_dir = template_dir / 'js'
 
-    # 1. Read all CSS files in order
+    # Build list of all files to read
+    all_files = []
+    css_files = [(name, css_dir / f'{name}.css') for name in CSS_ORDER]
+    html_files = [('head', html_dir / 'head.html')] + [(name, html_dir / f'{name}.html') for name in HTML_ORDER]
+    js_files = [(name, js_dir / f'{name}.js') for name in JS_ORDER]
+
+    all_paths = [f[1] for f in css_files + html_files + js_files]
+
+    # Read all files in parallel
+    with ThreadPoolExecutor(max_workers=16) as executor:
+        results = dict(executor.map(read_file_safe, all_paths))
+
+    # 1. Assemble CSS
     css_parts = []
-    for name in CSS_ORDER:
-        css_file = css_dir / f'{name}.css'
-        if css_file.exists():
-            css_parts.append(read_file(css_file))
+    for name, path in css_files:
+        content = results.get(path)
+        if content:
+            css_parts.append(content)
         else:
-            print(f"  WARNING: CSS file not found: {css_file}")
+            print(f"  WARNING: CSS file not found: {path}")
     css_content = '\n'.join(css_parts)
 
     # 2. Read HTML head partial
-    head_html = read_file(html_dir / 'head.html')
+    head_html = results.get(html_dir / 'head.html', '')
 
     # 3. Read HTML body partials
     body_parts = []
     for name in HTML_ORDER:
-        html_file = html_dir / f'{name}.html'
-        if html_file.exists():
-            body_parts.append(read_file(html_file))
+        path = html_dir / f'{name}.html'
+        content = results.get(path)
+        if content:
+            body_parts.append(content)
         else:
-            print(f"  WARNING: HTML file not found: {html_file}")
+            print(f"  WARNING: HTML file not found: {path}")
 
-    # 4. Read all JS files in order
+    # 4. Assemble JS
     js_parts = []
-    for name in JS_ORDER:
-        js_file = js_dir / f'{name}.js'
-        if js_file.exists():
-            js_parts.append(read_file(js_file))
+    for name, path in js_files:
+        content = results.get(path)
+        if content:
+            js_parts.append(content)
         else:
-            print(f"  WARNING: JS file not found: {js_file}")
+            print(f"  WARNING: JS file not found: {path}")
     js_content = '\n\n'.join(js_parts)
 
     # 5. Assemble the password section and dashboard sections
@@ -407,13 +533,34 @@ def find_excel_file(input_dir: Path) -> Path:
     return xlsx_files[0]
 
 
+def parse_args():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(description='Build Indirect G&A Dashboard')
+    parser.add_argument('--no-cache', action='store_true',
+                        help='Disable caching (force re-process Excel)')
+    parser.add_argument('--clear-cache', action='store_true',
+                        help='Clear cache before building')
+    return parser.parse_args()
+
+
 def main():
+    import time
+    start_time = time.time()
+
+    args = parse_args()
     script_dir = Path(__file__).parent
+    cache_dir = script_dir / CACHE_DIR
 
     print("=" * 60)
-    print("Indirect G&A Cost Dashboard Builder")
+    print("Indirect G&A Cost Dashboard Builder (OPTIMIZED)")
     print("=" * 60)
     print()
+
+    # Clear cache if requested
+    if args.clear_cache and cache_dir.exists():
+        import shutil
+        shutil.rmtree(cache_dir)
+        print("Cache cleared.")
 
     # Find Excel file
     input_dir = script_dir / INPUT_DIR
@@ -421,7 +568,7 @@ def main():
     excel_path = find_excel_file(input_dir)
     print(f"Found Excel file: {excel_path.name}")
 
-    # Assemble template from modular files
+    # Assemble template from modular files (parallel I/O)
     template_dir = script_dir / TEMPLATE_DIR
     print()
     print("Assembling template from modular source files...")
@@ -431,10 +578,11 @@ def main():
     html_content = assemble_template(template_dir)
     print(f"  Assembled template: {len(html_content):,} bytes")
 
-    # Convert Excel to CSV
+    # Convert Excel to CSV (with caching)
     print()
     print("Converting Excel to CSV...")
-    csv_data, record_count = excel_to_csv(excel_path)
+    use_cache = not args.no_cache
+    csv_data, record_count = excel_to_csv(excel_path, cache_dir, use_cache=use_cache)
 
     # Generate timestamp
     pacific_tz = ZoneInfo("America/Los_Angeles")
@@ -463,6 +611,7 @@ def main():
 
     # Summary
     output_size_mb = output_path.stat().st_size / 1024 / 1024
+    elapsed = time.time() - start_time
 
     print()
     print("=" * 60)
@@ -473,6 +622,7 @@ def main():
     print(f"  Output:  {OUTPUT_FILE}")
     print(f"  Size:    {output_size_mb:.2f} MB")
     print(f"  Updated: {timestamp}")
+    print(f"  Time:    {elapsed:.2f}s")
 
     return 0
 

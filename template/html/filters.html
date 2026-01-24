@@ -1,7 +1,7 @@
 <!-- Compact Global Filters -->
 <section class="compact-filters" id="globalFilters">
     <div class="filter-row">
-        <div class="filter-chip">
+        <div class="filter-chip date-filter">
             <label>Date</label>
             <input type="date" class="chip-input" id="startDate">
             <span class="chip-sep">-</span>
@@ -14,21 +14,23 @@
             <button class="preset-btn" data-preset="l12m" title="Last 12 Months">L12M</button>
             <button class="preset-btn" data-preset="l30d" title="Last 30 Days">L30D</button>
         </div>
+        <div class="filter-sep"></div>
         <div class="filter-chip">
             <label>Type</label>
-            <select class="chip-select" id="jobTypeFilter">
-                <option value="all">All</option>
-                <option value="GA">G&A</option>
-                <option value="IN">Indirect</option>
-            </select>
+            <div class="pill-toggle" id="jobTypeToggle">
+                <button class="pill-btn active" data-value="all">All</button>
+                <button class="pill-btn" data-value="GA">G&A</button>
+                <button class="pill-btn" data-value="IN">Indirect</button>
+            </div>
         </div>
+        <div class="filter-sep"></div>
         <div class="filter-chip">
             <label>Division</label>
             <div class="mini-multiselect" id="divisionMultiselect">
                 <button class="mini-trigger" id="divisionTrigger"><span>All</span><span class="caret"></span></button>
                 <div class="mini-dropdown" id="divisionDropdown">
-                    <input type="text" class="mini-search" placeholder="Search...">
-                    <div class="mini-actions"><button data-action="all">All</button><button data-action="none">None</button></div>
+                    <input type="text" class="mini-search" placeholder="Search divisions...">
+                    <div class="mini-actions"><button data-action="all">Select All</button><button data-action="none">Clear</button></div>
                     <div class="mini-options" id="divisionOptions"></div>
                 </div>
             </div>
@@ -38,31 +40,9 @@
             <div class="mini-multiselect" id="departmentMultiselect">
                 <button class="mini-trigger" id="departmentTrigger"><span>All</span><span class="caret"></span></button>
                 <div class="mini-dropdown" id="departmentDropdown">
-                    <input type="text" class="mini-search" placeholder="Search...">
-                    <div class="mini-actions"><button data-action="all">All</button><button data-action="none">None</button></div>
+                    <input type="text" class="mini-search" placeholder="Search departments...">
+                    <div class="mini-actions"><button data-action="all">Select All</button><button data-action="none">Clear</button></div>
                     <div class="mini-options" id="departmentOptions"></div>
-                </div>
-            </div>
-        </div>
-        <div class="filter-chip">
-            <label>Dept Cat</label>
-            <div class="mini-multiselect" id="deptCategoryMultiselect">
-                <button class="mini-trigger" id="deptCategoryTrigger"><span>All</span><span class="caret"></span></button>
-                <div class="mini-dropdown" id="deptCategoryDropdown">
-                    <input type="text" class="mini-search" placeholder="Search...">
-                    <div class="mini-actions"><button data-action="all">All</button><button data-action="none">None</button></div>
-                    <div class="mini-options" id="deptCategoryOptions"></div>
-                </div>
-            </div>
-        </div>
-        <div class="filter-chip">
-            <label>Category</label>
-            <div class="mini-multiselect" id="categoryMultiselect">
-                <button class="mini-trigger" id="categoryTrigger"><span>All</span><span class="caret"></span></button>
-                <div class="mini-dropdown" id="categoryDropdown">
-                    <input type="text" class="mini-search" placeholder="Search...">
-                    <div class="mini-actions"><button data-action="all">All</button><button data-action="none">None</button></div>
-                    <div class="mini-options" id="categoryOptions"></div>
                 </div>
             </div>
         </div>
@@ -71,16 +51,29 @@
             <div class="mini-multiselect" id="docTypeMultiselect">
                 <button class="mini-trigger" id="docTypeTrigger"><span>All</span><span class="caret"></span></button>
                 <div class="mini-dropdown" id="docTypeDropdown">
-                    <input type="text" class="mini-search" placeholder="Search...">
-                    <div class="mini-actions"><button data-action="all">All</button><button data-action="none">None</button></div>
+                    <input type="text" class="mini-search" placeholder="Search doc types...">
+                    <div class="mini-actions"><button data-action="all">Select All</button><button data-action="none">Clear</button></div>
                     <div class="mini-options" id="docTypeOptions"></div>
                 </div>
             </div>
         </div>
         <div class="filter-actions-inline">
-            <span class="filter-preview" id="filterPreview"></span>
-            <button class="action-btn primary" id="applyFiltersBtn" title="Apply filters (A)">Apply</button>
-            <button class="action-btn" id="clearFiltersBtn" title="Clear filters (C)">Clear</button>
+            <div class="filter-status" id="filterStatus">
+                <span class="filter-spinner"></span>
+            </div>
+            <button class="action-btn" id="clearFiltersBtn" title="Clear filters (C)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+                Clear
+            </button>
+        </div>
+    </div>
+    <!-- Dept Category chips row -->
+    <div class="filter-row filter-row-secondary">
+        <div class="filter-chip chip-row">
+            <label>Dept Category</label>
+            <div class="chip-toggles" id="deptCategoryChips"></div>
         </div>
     </div>
     <div class="active-filters" id="activeFilters"></div>
