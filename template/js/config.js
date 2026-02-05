@@ -35,8 +35,7 @@ const DEPT_CATEGORY_COLORS = {
     'Other': COLORS.gray
 };
 
-const MANHOUR_DOC_TYPES = ['T2', 'JE'];
-const MANHOUR_COST_PREFIX = '511';  // Only count manhours from 511* cost types
+const MANHOUR_DOC_TYPES = ['T1', 'T2', 'T3', 'T4'];
 
 // Unified chart configuration defaults
 const CHART_DEFAULTS = {

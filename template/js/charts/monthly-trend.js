@@ -21,9 +21,9 @@ function aggregateMonthlyData(data) {
         if (r['Job Type'] === 'GA') monthlyAgg[m].ga += amt;
         else if (r['Job Type'] === 'IN') monthlyAgg[m].in += amt;
 
-        // Track manhours for T2/JE with 511* cost types only
+        // Track manhours for T1-T4 document types
         const docType = r['Document Type'] || '';
-        if (MANHOUR_DOC_TYPES.includes(docType) && ct.startsWith(MANHOUR_COST_PREFIX)) {
+        if (MANHOUR_DOC_TYPES.includes(docType)) {
             monthlyAgg[m].manhours += Math.abs(r['Actual Units'] || 0);
         }
 

@@ -138,9 +138,8 @@ function computeAllMetrics(data) {
             if (jobType === 'GA') ma.ga += amt;
             else if (jobType === 'IN') ma.in += amt;
 
-            // Manhours for T2/JE with 511* cost types only
-            if (typeof MANHOUR_DOC_TYPES !== 'undefined' && MANHOUR_DOC_TYPES.includes(docType) &&
-                typeof MANHOUR_COST_PREFIX !== 'undefined' && ct.startsWith(MANHOUR_COST_PREFIX)) {
+            // Manhours for T1-T4
+            if (typeof MANHOUR_DOC_TYPES !== 'undefined' && MANHOUR_DOC_TYPES.includes(docType)) {
                 ma.manhours += Math.abs(row['Actual Units'] || 0);
             }
 
