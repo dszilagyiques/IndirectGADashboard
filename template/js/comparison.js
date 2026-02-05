@@ -68,8 +68,29 @@ function formatMonthOption(monthStr) {
     return `${monthNames[parseInt(month) - 1]} ${year}`;
 }
 
+function formatMonthShort(monthStr) {
+    const [year, month] = monthStr.split('-');
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${monthNames[parseInt(month) - 1]} '${year.slice(2)}`;
+}
+
 function formatQuarterOption(quarterStr) {
     return quarterStr.replace('-Q', ' Q');
+}
+
+function formatQuarterShort(quarterStr) {
+    const [year, q] = quarterStr.split('-Q');
+    return `Q${q} '${year.slice(2)}`;
+}
+
+function formatPeriodLabel(value, type) {
+    if (!value) return '-';
+    switch (type) {
+        case 'month': return formatMonthShort(value);
+        case 'quarter': return formatQuarterShort(value);
+        case 'year': return value;
+        default: return value;
+    }
 }
 
 function populatePeriodSelects() {
@@ -429,6 +450,12 @@ function resetComparisonResults() {
     document.getElementById('compareRecoveryA').textContent = '-';
     document.getElementById('compareRecoveryB').textContent = '-';
 
+    // Reset header labels to default
+    const headerA = document.getElementById('resultHeaderA');
+    const headerB = document.getElementById('resultHeaderB');
+    if (headerA) { headerA.textContent = 'A'; headerA.title = 'Period A'; }
+    if (headerB) { headerB.textContent = 'B'; headerB.title = 'Period B'; }
+
     ['compareGrossVar', 'compareAllocVar', 'compareNetVar', 'compareRecoveryVar'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
@@ -469,7 +496,26 @@ function formatCompactCurrency(value) {
     return value.toFixed(0);
 }
 
+function updateComparisonResultHeaders() {
+    const selectA = document.getElementById('periodASelect');
+    const selectB = document.getElementById('periodBSelect');
+    const headerA = document.getElementById('resultHeaderA');
+    const headerB = document.getElementById('resultHeaderB');
+
+    if (headerA && selectA) {
+        const labelA = formatPeriodLabel(selectA.value, currentPeriodType);
+        headerA.textContent = labelA;
+        headerA.title = `Period A: ${selectA.value ? formatPeriodLabel(selectA.value, currentPeriodType) : 'Not selected'}`;
+    }
+    if (headerB && selectB) {
+        const labelB = formatPeriodLabel(selectB.value, currentPeriodType);
+        headerB.textContent = labelB;
+        headerB.title = `Period B: ${selectB.value ? formatPeriodLabel(selectB.value, currentPeriodType) : 'Not selected'}`;
+    }
+}
+
 function updateComparisonKPIs() {
+    updateComparisonResultHeaders();
     const kpisA = calculatePeriodKPIs(periodAData);
     const kpisB = calculatePeriodKPIs(periodBData);
 
