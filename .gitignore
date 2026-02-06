@@ -1,31 +1,26 @@
-.venv/
-venv/
-__pycache__/
-*.py[cod]
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.DS_Store
-Thumbs.db
-
-# Windows reserved device names / accidental placeholder
-nul
-
-# Logs
-logs/
-*.log
-
-# Python tooling
-.python-version
-
-# Editor/IDE
-.vscode/
-.idea/
-
-# Keep large/generated artifacts out by default
+# Generated output (too large for GitHub - rebuild with: python build_dashboard.py)
+index.html
 outputs/
+
+# Data files
+*.xlsx
+input/
 
 # Build cache
 .build_cache/
 
+# Python
+venv/
+__pycache__/
+*.pyc
 
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+nul
+
+# Logs
+logs/
