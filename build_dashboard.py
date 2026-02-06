@@ -68,7 +68,7 @@ JS_ORDER = [
 
 def categorize_cost_type(cost_type: str) -> str:
     """Map cost type code to high-level category."""
-    if pd.isna(cost_type) or not cost_type:
+    if cost_type is None or not cost_type:
         return 'Other'
 
     # Extract numeric code from "611000 - Regular Time" format
@@ -147,7 +147,7 @@ DEPARTMENT_CATEGORY_MAP = {
 
 def get_department(job_value) -> str:
     """Extract department from job number (last 3 digits). Returns 'code - description' format."""
-    if pd.isna(job_value):
+    if job_value is None:
         return 'Unknown'
     job_str = str(int(job_value)) if isinstance(job_value, float) else str(job_value)
     dept_code = job_str[-3:]

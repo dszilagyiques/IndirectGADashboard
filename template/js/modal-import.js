@@ -187,8 +187,16 @@ const ImportModal = (function() {
 
                 updateProgress('Extracting columns...', 30);
 
-                // Get sheet range
+                // Get sheet range with validation
+                if (!sheet['!ref']) {
+                    throw new Error('Sheet is empty or has no valid data range');
+                }
+
                 const range = XLSX.utils.decode_range(sheet['!ref']);
+                if (!range || !range.e || !range.s) {
+                    throw new Error('Invalid sheet range');
+                }
+
                 const rowCount = range.e.r - range.s.r;
 
                 // Build column name mapping from header row
