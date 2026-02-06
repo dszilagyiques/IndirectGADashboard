@@ -1,12 +1,12 @@
 // === MONTHLY TREND CHART (MAIN FOCUS) ===
 
-function aggregateMonthlyData(data) {
-    // Use cached metrics if available
-    if (cachedMetrics && cachedMetrics.monthlyAgg && Object.keys(cachedMetrics.monthlyAgg).length > 0) {
+function aggregateMonthlyData(data, useCache) {
+    // Use cached metrics only for the global filteredData (not comparison periods)
+    if (useCache !== false && cachedMetrics && cachedMetrics.monthlyAgg && Object.keys(cachedMetrics.monthlyAgg).length > 0) {
         return cachedMetrics.monthlyAgg;
     }
 
-    // Fallback: compute from scratch
+    // Compute from scratch (always used for comparison period data)
     const monthlyAgg = {};
     data.forEach(r => {
         const m = (r['G/L Date'] || '').substring(0, 7);
@@ -77,8 +77,8 @@ function renderMonthlyTrend() {
 
     // Comparison mode: show grouped bar chart based on trendView
     if (comparisonMode && periodAData.length > 0 && periodBData.length > 0) {
-        const aggA = aggregateMonthlyData(periodAData);
-        const aggB = aggregateMonthlyData(periodBData);
+        const aggA = aggregateMonthlyData(periodAData, false);
+        const aggB = aggregateMonthlyData(periodBData, false);
 
         const monthsA = Object.keys(aggA).sort();
         const monthsB = Object.keys(aggB).sort();
@@ -356,11 +356,11 @@ function renderMonthlyTrend() {
             { label: 'Indirect', data: months.map(m => monthlyAgg[m].in), backgroundColor: COLORS.cyan + 'cc', stack: 'stack1' }
         ];
     } else {
-        // Show all items by total
+        // Show top 15 items + "Other" bucket
+        const MAX_LEGEND = 15;
         const keyMap = { 'by-division': 'byDiv', 'by-department': 'byDept', 'by-deptcat': 'byDeptCat' };
         const key = keyMap[trendView];
         const labelMap = { 'by-division': 'division', 'by-department': 'department', 'by-deptcat': 'dept category' };
-        subtitle = `All ${labelMap[trendView]}${trendView === 'by-deptcat' ? 'ies' : 's'} by total cost`;
 
         // Sum totals across all months for ranking
         const totals = {};
@@ -370,15 +370,36 @@ function renderMonthlyTrend() {
             });
         });
 
-        // Sort by total descending and show all items
-        const allItems = Object.entries(totals).sort((a, b) => b[1] - a[1]).map(d => d[0]);
+        const sorted = Object.entries(totals).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+        const topItems = sorted.slice(0, MAX_LEGEND).map(d => d[0]);
+        const otherItems = sorted.slice(MAX_LEGEND).map(d => d[0]);
+        const totalCount = sorted.length;
 
-        datasets = allItems.map((item, i) => ({
+        subtitle = totalCount > MAX_LEGEND
+            ? `Top ${MAX_LEGEND} of ${totalCount} ${labelMap[trendView]}${trendView === 'by-deptcat' ? 'ies' : 's'} by total cost`
+            : `All ${labelMap[trendView]}${trendView === 'by-deptcat' ? 'ies' : 's'} by total cost`;
+
+        datasets = topItems.map((item, i) => ({
             label: item.length > 20 ? item.substring(0, 18) + '...' : item,
             data: months.map(m => (monthlyAgg[m][key] || {})[item] || 0),
             backgroundColor: PALETTE[i % PALETTE.length] + 'cc',
             stack: 'stack1'
         }));
+
+        // Add "Other" bucket if there are items beyond top 15
+        if (otherItems.length > 0) {
+            datasets.push({
+                label: `Other (${otherItems.length})`,
+                data: months.map(m => {
+                    let sum = 0;
+                    const mData = monthlyAgg[m][key] || {};
+                    for (const item of otherItems) sum += mData[item] || 0;
+                    return sum;
+                }),
+                backgroundColor: '#6e7681cc',
+                stack: 'stack1'
+            });
+        }
     }
 
     document.getElementById('monthlyTrendSubtitle').textContent = subtitle;
@@ -406,6 +427,11 @@ function renderMonthlyTrend() {
                             }
                             return ctx.dataset.label + ': ' + formatCurrency(ctx.raw);
                         },
+                        // Limit tooltip items to 15 for breakdown views
+                        filter: (item) => {
+                            if (trendView === 'summary' || trendView === 'by-jobtype') return true;
+                            return item.datasetIndex < 15 || item.raw !== 0;
+                        },
                         afterBody: (items) => {
                             const lines = [];
                             if (trendView === 'summary' && items.length > 0) {
@@ -413,7 +439,6 @@ function renderMonthlyTrend() {
                                 const currentMonth = months[idx];
                                 const prevIdx = idx - 1;
 
-                                // Calculate totals for current month
                                 const gross = monthlyAgg[currentMonth].gross;
                                 const alloc = monthlyAgg[currentMonth].alloc;
                                 const net = gross + alloc;
@@ -435,7 +460,6 @@ function renderMonthlyTrend() {
                                     lines.push(`  Net: ${netArrow} ${netChange}%`);
                                 }
 
-                                // Check for same month last year
                                 const [year, mon] = currentMonth.split('-');
                                 const lastYearMonth = `${parseInt(year) - 1}-${mon}`;
                                 if (monthlyAgg[lastYearMonth]) {
@@ -457,6 +481,9 @@ function renderMonthlyTrend() {
                                 lines.push(`Total: ${formatCurrency(total)}`);
                             }
                             return lines;
+                        },
+                        footer: () => {
+                            return ['\u25B6 Click bar to drill through'];
                         }
                     }
                 }

@@ -59,26 +59,36 @@ function updateDashboard() {
 // === INITIALIZATION ===
 
 function setupFilters() {
-    const divisions = [...new Set(rawData.map(r => r['Division Name']).filter(Boolean))].sort();
-    const departments = [...new Set(rawData.map(r => r['Department']).filter(Boolean))].sort();
-    const deptCategories = [...new Set(rawData.map(r => r['Dept_Category']).filter(Boolean))].sort();
-    const docTypes = [...new Set(rawData.map(r => r['Document Type']).filter(Boolean))].sort();
+    // ── Single-pass extraction of ALL multiselect filter values ──
+    // Pre-extract field names for tight loop (avoids config object access per row)
+    const fields = MULTISELECT_FILTERS.map(f => f.field);
+    const numF = fields.length;
+    const sets = [];
+    for (let j = 0; j < numF; j++) sets.push(new Set());
+    const deptCatSet = new Set();
 
-    // Store totals for "X of Y" display
-    filterTotals.divisions = divisions.length;
-    filterTotals.departments = departments.length;
+    const len = rawData.length;
+    for (let i = 0; i < len; i++) {
+        const r = rawData[i];
+        for (let j = 0; j < numF; j++) {
+            const v = r[fields[j]];
+            if (v != null && v !== '') sets[j].add(String(v));
+        }
+        if (r['Dept_Category']) deptCatSet.add(r['Dept_Category']);
+    }
+
+    // Populate and setup each multiselect from config
+    for (let j = 0; j < numF; j++) {
+        const f = MULTISELECT_FILTERS[j];
+        const values = Array.from(sets[j]).sort();
+        filterTotals[f.key] = values.length;
+        populateMultiselect(document.getElementById(f.id + 'Options'), values, f.key);
+    }
+    setupAllMultiselects();
+
+    // Dept Category chips
+    const deptCategories = Array.from(deptCatSet).sort();
     filterTotals.deptCategories = deptCategories.length;
-    filterTotals.docTypes = docTypes.length;
-
-    populateMultiselect(document.getElementById('divisionOptions'), divisions, 'divisions');
-    populateMultiselect(document.getElementById('departmentOptions'), departments, 'departments');
-    populateMultiselect(document.getElementById('docTypeOptions'), docTypes, 'docTypes');
-
-    setupMultiselect('divisionMultiselect', 'divisionTrigger', 'divisionDropdown', 'divisionOptions', 'divisions');
-    setupMultiselect('departmentMultiselect', 'departmentTrigger', 'departmentDropdown', 'departmentOptions', 'departments');
-    setupMultiselect('docTypeMultiselect', 'docTypeTrigger', 'docTypeDropdown', 'docTypeOptions', 'docTypes');
-
-    // Setup Dept Category as inline chip toggles
     setupDeptCategoryChips(deptCategories);
 
     // Setup Job Type toggle buttons

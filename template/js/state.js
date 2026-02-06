@@ -9,11 +9,11 @@ let filters = {
     startDate: null,
     endDate: null,
     jobType: 'all',
-    divisions: [],
-    departments: [],
-    deptCategories: [],
-    docTypes: []
+    deptCategories: []
 };
+
+// Initialize all multiselect filter arrays from config
+MULTISELECT_FILTERS.forEach(f => { filters[f.key] = []; });
 
 // Drill-through state
 const drill = {

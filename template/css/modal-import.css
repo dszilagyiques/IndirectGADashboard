@@ -373,6 +373,24 @@
     color: var(--text-secondary);
 }
 
+.import-progress-track {
+    width: 100%;
+    max-width: 320px;
+    height: 6px;
+    background: var(--bg-base);
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid var(--border-default);
+}
+
+.import-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: var(--accent-blue);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
 /* Success state */
 .import-success {
     display: flex;

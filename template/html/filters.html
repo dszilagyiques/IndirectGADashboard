@@ -24,6 +24,7 @@
             </div>
         </div>
         <div class="filter-sep"></div>
+        <!-- Core multiselects (row 1) -->
         <div class="filter-chip">
             <label>Division</label>
             <div class="mini-multiselect" id="divisionMultiselect">
@@ -74,6 +75,119 @@
         <div class="filter-chip chip-row">
             <label>Dept Category</label>
             <div class="chip-toggles" id="deptCategoryChips"></div>
+        </div>
+    </div>
+    <!-- Additional column filters row -->
+    <div class="filter-row filter-row-secondary">
+        <div class="filter-chip">
+            <label>Status</label>
+            <div class="mini-multiselect" id="jobStatusMultiselect">
+                <button class="mini-trigger" id="jobStatusTrigger"><span>All</span><span class="caret"></span></button>
+                <div class="mini-dropdown" id="jobStatusDropdown">
+                    <input type="text" class="mini-search" placeholder="Search...">
+                    <div class="mini-actions"><button data-action="all">Select All</button><button data-action="none">Clear</button></div>
+                    <div class="mini-options" id="jobStatusOptions"></div>
+                </div>
+            </div>
+        </div>
+        <div class="filter-chip">
+            <label>Job Grp</label>
+            <div class="mini-multiselect" id="jobGroupingMultiselect">
+                <button class="mini-trigger" id="jobGroupingTrigger"><span>All</span><span class="caret"></span></button>
+                <div class="mini-dropdown" id="jobGroupingDropdown">
+                    <input type="text" class="mini-search" placeholder="Search job groupings...">
+                    <div class="mini-actions"><button data-action="all">Select All</button><button data-action="none">Clear</button></div>
+                    <div class="mini-options" id="jobGroupingOptions"></div>
+                </div>
+            </div>
+        </div>
+        <div class="filter-chip">
+            <label>Div #</label>
+            <div class="mini-multiselect" id="divNumMultiselect">
+                <button class="mini-trigger" id="divNumTrigger"><span>All</span><span class="caret"></span></button>
+                <div class="mini-dropdown" id="divNumDropdown">
+                    <input type="text" class="mini-search" placeholder="Search...">
+                    <div class="mini-actions"><button data-action="all">Select All</button><button data-action="none">Clear</button></div>
+                    <div class="mini-options" id="divNumOptions"></div>
+                </div>
+            </div>
+        </div>
+        <div class="filter-chip">
+            <label>Company</label>
+            <div class="mini-multiselect" id="docCompanyMultiselect">
+                <button class="mini-trigger" id="docCompanyTrigger"><span>All</span><span class="caret"></span></button>
+                <div class="mini-dropdown" id="docCompanyDropdown">
+                    <input type="text" class="mini-search" placeholder="Search...">
+                    <div class="mini-actions"><button data-action="all">Select All</button><button data-action="none">Clear</button></div>
+                    <div class="mini-options" id="docCompanyOptions"></div>
+                </div>
+            </div>
+        </div>
+        <div class="filter-chip">
+            <label>Batch</label>
+            <div class="mini-multiselect" id="batchTypeMultiselect">
+                <button class="mini-trigger" id="batchTypeTrigger"><span>All</span><span class="caret"></span></button>
+                <div class="mini-dropdown" id="batchTypeDropdown">
+                    <input type="text" class="mini-search" placeholder="Search...">
+                    <div class="mini-actions"><button data-action="all">Select All</button><button data-action="none">Clear</button></div>
+                    <div class="mini-options" id="batchTypeOptions"></div>
+                </div>
+            </div>
+        </div>
+        <div class="filter-chip">
+            <label>Cost Type</label>
+            <div class="mini-multiselect" id="costTypeValMultiselect">
+                <button class="mini-trigger" id="costTypeValTrigger"><span>All</span><span class="caret"></span></button>
+                <div class="mini-dropdown" id="costTypeValDropdown">
+                    <input type="text" class="mini-search" placeholder="Search cost types...">
+                    <div class="mini-actions"><button data-action="all">Select All</button><button data-action="none">Clear</button></div>
+                    <div class="mini-options" id="costTypeValOptions"></div>
+                </div>
+            </div>
+        </div>
+        <div class="filter-chip">
+            <label>Cost Code</label>
+            <div class="mini-multiselect" id="costCodeMultiselect">
+                <button class="mini-trigger" id="costCodeTrigger"><span>All</span><span class="caret"></span></button>
+                <div class="mini-dropdown" id="costCodeDropdown">
+                    <input type="text" class="mini-search" placeholder="Search cost codes...">
+                    <div class="mini-actions"><button data-action="all">Select All</button><button data-action="none">Clear</button></div>
+                    <div class="mini-options" id="costCodeOptions"></div>
+                </div>
+            </div>
+        </div>
+        <div class="filter-chip">
+            <label>Job #</label>
+            <div class="mini-multiselect" id="jobNumMultiselect">
+                <button class="mini-trigger" id="jobNumTrigger"><span>All</span><span class="caret"></span></button>
+                <div class="mini-dropdown" id="jobNumDropdown">
+                    <input type="text" class="mini-search" placeholder="Search jobs...">
+                    <div class="mini-actions"><button data-action="all">Select All</button><button data-action="none">Clear</button></div>
+                    <div class="mini-options" id="jobNumOptions"></div>
+                </div>
+            </div>
+        </div>
+        <div class="filter-chip">
+            <label>Desc</label>
+            <div class="mini-multiselect" id="descMultiselect">
+                <button class="mini-trigger" id="descTrigger"><span>All</span><span class="caret"></span></button>
+                <div class="mini-dropdown" id="descDropdown">
+                    <input type="text" class="mini-search" placeholder="Search descriptions...">
+                    <div class="mini-actions"><button data-action="all">Select All</button><button data-action="none">Clear</button></div>
+                    <div class="mini-options" id="descOptions"></div>
+                </div>
+            </div>
+        </div>
+        <div class="filter-chip">
+            <label>Unit #</label>
+            <div class="mini-multiselect" id="unitNumMultiselect">
+                <button class="mini-trigger" id="unitNumTrigger"><span>All</span><span class="caret"></span></button>
+                <div class="mini-dropdown" id="unitNumDropdown">
+                    <input type="text" class="mini-search" placeholder="Search units...">
+                    <div class="mini-actions"><button data-action="all">Select All</button><button data-action="none">Clear</button></div>
+                    <div class="mini-options" id="unitNumOptions"></div>
+                </div>
+            </div>
         </div>
     </div>
     <div class="active-filters" id="activeFilters"></div>

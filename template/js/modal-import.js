@@ -1,37 +1,38 @@
-// === EXCEL IMPORT MODAL (OPTIMIZED) ===
-// Uses columnar storage, Web Workers, and batch processing for 20x faster imports
+// === EXCEL IMPORT MODAL ===
+// Two parsing paths:
+//   SMALL FILES (<30 MB): SheetJS XLSX.read() — fast, in-memory
+//   LARGE FILES (≥30 MB): Custom streaming parser — uses DecompressionStream
+//     to incrementally decompress the ZIP and SAX-parse the XML without
+//     ever holding the full 670 MB sheet XML in memory.
 
 const ImportModal = (function() {
     let selectedFile = null;
-    let parsedData = null;        // Columnar format: { columns: {name: values[]}, rowCount }
+    let parsedData = null;        // Columnar: { columns: {name: values[]}, rowCount, allColumns }
     let validationResult = null;
-    let importWorker = null;
+
+    // Browser streaming support check
+    const SUPPORTS_STREAMING = typeof DecompressionStream !== 'undefined';
 
     // Required columns for validation
     const REQUIRED_COLUMNS = [
-        'G/L Date',
-        'Division Name',
-        'Job',
-        'Job Type',
-        'Cost Type',
-        'Actual Amount',
-        'Document Type'
+        'G/L Date', 'Division Name', 'Job', 'Job Type',
+        'Cost Type', 'Actual Amount', 'Document Type'
     ];
 
-    // Optional columns that we recognize
     const OPTIONAL_COLUMNS = [
-        'Description',
-        'Vendor Name',
-        'Employee Name',
-        'Reference',
-        'Comments',
-        'Actual Units'  // Required for manhours tracking (T1-T4 doc types)
+        'Description', 'Vendor Name', 'Employee Name',
+        'Reference', 'Comments', 'Actual Units',
+        // Additional columns for multiselect filters
+        'Job Status', 'Job Groupings', 'Div #', 'Batch Type',
+        'Document Company', 'Cost Code', 'Unit Number'
     ];
 
-    // All columns we care about (for selective extraction)
     const KEEP_COLUMNS = new Set([...REQUIRED_COLUMNS, ...OPTIONAL_COLUMNS]);
 
-    // Department mapping (same as build_dashboard.py)
+    // Columns whose numeric values are Excel date serials
+    const DATE_COLUMNS = new Set(['G/L Date', 'Invoice Date', 'Batch Date']);
+
+    // Department mapping
     const DEPARTMENT_MAP = {
         '110': 'Exec', '130': 'Bus Dev', '140': 'Admin', '150': 'Acct', '165': 'Treasury',
         '170': 'HR Payroll', '180': 'IT', '190': 'Risk Mgmt', '210': 'Intl Ops',
@@ -53,51 +54,35 @@ const ImportModal = (function() {
         '760': 'Tools', '590': 'Other', '770': 'Other', '850': 'Other', '860': 'Other'
     };
 
-    // Pre-compiled patterns for performance
     const AMOUNT_CLEAN_REGEX = /[$,]/g;
     const COST_CODE_SPLIT = ' - ';
 
-    /**
-     * Open the import modal
-     */
+    // ──────────────────────────────────────────────────────
+    //  UI helpers
+    // ──────────────────────────────────────────────────────
+
     function open() {
         resetState();
         showSection('dropzone');
         updateFooterInfo('Select an Excel file with Cost Code Detail Report data');
         document.getElementById('importSubmitBtn').disabled = true;
-
-        ModalManager.open('importModal', {
-            onClose: resetState
-        });
+        ModalManager.open('importModal', { onClose: resetState });
     }
 
-    /**
-     * Reset modal state
-     */
     function resetState() {
         selectedFile = null;
         parsedData = null;
         validationResult = null;
-
-        if (importWorker) {
-            importWorker.terminate();
-            importWorker = null;
-        }
-
         document.getElementById('importFileInput').value = '';
         document.getElementById('importDropzone').classList.remove('has-file', 'dragover');
     }
 
-    /**
-     * Show a specific section of the modal
-     */
     function showSection(section) {
         const sections = ['dropzone', 'file', 'validation', 'preview', 'processing', 'success'];
         sections.forEach(s => {
             const el = document.getElementById(`import${s.charAt(0).toUpperCase() + s.slice(1)}Section`);
             if (el) el.style.display = s === section || (section === 'file' && s === 'dropzone') ? 'block' : 'none';
         });
-
         if (section === 'file') {
             document.getElementById('importDropzoneSection').style.display = 'none';
             document.getElementById('importFileSection').style.display = 'block';
@@ -106,292 +91,538 @@ const ImportModal = (function() {
         }
     }
 
-    /**
-     * Update footer info text
-     */
     function updateFooterInfo(text) {
         document.getElementById('importFooterInfo').textContent = text;
     }
 
-    /**
-     * Update processing progress
-     */
-    function updateProgress(text, percent = null) {
+    function updateProgress(text, percent) {
         document.getElementById('importProcessingText').textContent = text;
-        const progressBar = document.getElementById('importProgressBar');
-        if (progressBar) {
-            if (percent !== null) {
-                progressBar.style.width = percent + '%';
-                progressBar.style.display = 'block';
+        const bar = document.getElementById('importProgressBar');
+        const track = document.getElementById('importProgressTrack');
+        if (bar && track) {
+            if (percent != null) {
+                track.style.display = 'block';
+                bar.style.width = Math.min(100, Math.max(0, percent)) + '%';
             } else {
-                progressBar.style.display = 'none';
+                track.style.display = 'none';
             }
         }
     }
 
-    /**
-     * Handle file selection
-     */
+    // ──────────────────────────────────────────────────────
+    //  File selection & routing
+    // ──────────────────────────────────────────────────────
+
     function handleFileSelect(file) {
         if (!file) return;
-
         if (!file.name.match(/\.xlsx?$/i)) {
             alert('Please select an Excel file (.xlsx or .xls)');
             return;
         }
-
         selectedFile = file;
-
         document.getElementById('importFileName').textContent = file.name;
         document.getElementById('importFileSize').textContent = formatFileSize(file.size);
         document.getElementById('importDropzone').classList.add('has-file');
 
-        parseFileOptimized(file);
+        const fileMB = file.size / (1024 * 1024);
+
+        if (fileMB >= 30 && SUPPORTS_STREAMING) {
+            // Large file → streaming parser (no full-file-in-memory)
+            showSection('processing');
+            updateProgress(`Preparing streaming parse for ${fileMB.toFixed(0)} MB file...`, 0);
+            parseFileStreaming(file, performance.now(), fileMB);
+        } else {
+            // Small file → SheetJS in-memory parser
+            parseFileSheetJS(file);
+        }
     }
 
-    /**
-     * Parse Excel file - optimized with streaming and selective column extraction
-     */
-    function parseFileOptimized(file) {
+    // ──────────────────────────────────────────────────────
+    //  PATH A: SheetJS parser (files < 30 MB)
+    // ──────────────────────────────────────────────────────
+
+    function parseFileSheetJS(file) {
         showSection('processing');
         updateProgress('Reading Excel file...', 0);
-
         const startTime = performance.now();
 
         const reader = new FileReader();
         reader.onload = function(e) {
-            try {
-                updateProgress('Parsing workbook structure...', 10);
-
-                const data = new Uint8Array(e.target.result);
-
-                // Parse with optimized options
-                const workbook = XLSX.read(data, {
-                    type: 'array',
-                    cellDates: true,
-                    cellNF: false,      // Skip number format parsing
-                    cellHTML: false,    // Skip HTML parsing
-                    cellStyles: false,  // Skip style parsing
-                    sheetStubs: false   // Skip empty cells
-                });
-
-                updateProgress('Finding data sheet...', 20);
-
-                let sheetName = 'Cost Code Detail Report';
-                let sheet = workbook.Sheets[sheetName];
-
-                if (!sheet) {
-                    sheetName = workbook.SheetNames[0];
-                    sheet = workbook.Sheets[sheetName];
+            setTimeout(() => {
+                try {
+                    doParseSheetJS(new Uint8Array(e.target.result), startTime);
+                } catch (err) {
+                    console.error('Parse error:', err);
+                    showSection('dropzone');
+                    alert('Error parsing Excel file: ' + err.message);
                 }
-
-                updateProgress('Extracting columns...', 30);
-
-                // Get sheet range with validation
-                if (!sheet['!ref']) {
-                    throw new Error('Sheet is empty or has no valid data range');
-                }
-
-                const range = XLSX.utils.decode_range(sheet['!ref']);
-                if (!range || !range.e || !range.s) {
-                    throw new Error('Invalid sheet range');
-                }
-
-                const rowCount = range.e.r - range.s.r;
-
-                // Build column name mapping from header row
-                const colMap = {};  // colIndex -> cleanedName
-                const colIndices = {}; // cleanedName -> colIndex
-
-                for (let c = range.s.c; c <= range.e.c; c++) {
-                    const cellAddr = XLSX.utils.encode_cell({ r: range.s.r, c });
-                    const cell = sheet[cellAddr];
-                    if (cell && cell.v !== undefined) {
-                        const rawName = String(cell.v);
-                        const cleanName = rawName.split(/\s+/).join(' ').trim();
-                        colMap[c] = cleanName;
-                        colIndices[cleanName] = c;
-                    }
-                }
-
-                updateProgress('Allocating memory...', 40);
-
-                // Initialize columnar storage - only for columns we need
-                const columns = {};
-                const foundColumns = Object.values(colMap);
-                const neededCols = foundColumns.filter(name => KEEP_COLUMNS.has(name));
-
-                neededCols.forEach(name => {
-                    columns[name] = new Array(rowCount);
-                });
-
-                updateProgress('Extracting data (0%)...', 50);
-
-                // Extract data in columnar format - only needed columns
-                const dataRowStart = range.s.r + 1;
-                const totalRows = range.e.r - dataRowStart + 1;
-                const batchSize = 10000;
-                let processedRows = 0;
-
-                // Process in batches for progress updates
-                for (let r = dataRowStart; r <= range.e.r; r++) {
-                    const rowIdx = r - dataRowStart;
-
-                    for (const colName of neededCols) {
-                        const c = colIndices[colName];
-                        const cellAddr = XLSX.utils.encode_cell({ r, c });
-                        const cell = sheet[cellAddr];
-
-                        if (cell) {
-                            // Use raw value when possible
-                            columns[colName][rowIdx] = cell.v !== undefined ? cell.v : (cell.w || '');
-                        } else {
-                            columns[colName][rowIdx] = '';
-                        }
-                    }
-
-                    processedRows++;
-                    if (processedRows % batchSize === 0) {
-                        const pct = Math.round(50 + (processedRows / totalRows) * 40);
-                        updateProgress(`Extracting data (${Math.round(processedRows / totalRows * 100)}%)...`, pct);
-                    }
-                }
-
-                updateProgress('Validating...', 95);
-
-                // Store parsed data in columnar format
-                parsedData = {
-                    columns,
-                    rowCount: totalRows,
-                    allColumns: foundColumns
-                };
-
-                // Validate (sample-based for speed)
-                validationResult = validateDataFast(parsedData, sheetName);
-
-                const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
-                console.log(`Parse completed in ${elapsed}s for ${totalRows.toLocaleString()} rows`);
-
-                showValidationResults();
-
-            } catch (err) {
-                console.error('Parse error:', err);
-                showSection('dropzone');
-                alert('Error parsing Excel file: ' + err.message);
-            }
+            }, 50);
         };
-
-        reader.onerror = function() {
-            showSection('dropzone');
-            alert('Error reading file');
-        };
-
+        reader.onerror = () => { showSection('dropzone'); alert('Error reading file'); };
         reader.readAsArrayBuffer(file);
     }
 
-    /**
-     * Fast validation using sampling instead of full scan
-     */
-    function validateDataFast(data, sheetName) {
-        const result = {
-            valid: true,
-            errors: [],
-            warnings: [],
-            columns: {
-                required: [],
-                optional: [],
-                unknown: [],
-                missing: []
-            },
-            rowCount: data.rowCount,
-            sheetName: sheetName
+    function doParseSheetJS(data, startTime) {
+        updateProgress('Parsing workbook...', 10);
+
+        const opts = {
+            type: 'array', cellDates: true, cellNF: false, cellHTML: false,
+            cellStyles: false, cellFormula: false, sheetStubs: false
         };
 
-        if (data.rowCount === 0) {
-            result.valid = false;
-            result.errors.push('No data found in the file');
-            return result;
+        const workbook = XLSX.read(data, opts);
+        data = null;
+
+                let sheetName = 'Cost Code Detail Report';
+                let sheet = workbook.Sheets[sheetName];
+        if (!sheet) { sheetName = workbook.SheetNames[0]; sheet = workbook.Sheets[sheetName]; }
+        if (!sheet) throw new Error('No sheets found');
+
+        if (!sheet['!ref'] || typeof sheet['!ref'] !== 'string') {
+            repairSheetRef(sheet);
         }
 
-        const foundColumns = data.allColumns;
+        let range;
+        try { range = XLSX.utils.decode_range(sheet['!ref']); }
+        catch (_) { repairSheetRef(sheet); range = XLSX.utils.decode_range(sheet['!ref']); }
 
-        // Check required columns
-        REQUIRED_COLUMNS.forEach(col => {
-            if (foundColumns.includes(col)) {
-                result.columns.required.push(col);
-            } else {
-                result.columns.missing.push(col);
-                result.valid = false;
-                result.errors.push(`Missing required column: ${col}`);
-            }
-        });
+        const totalRows = range.e.r - range.s.r;
+        if (totalRows < 1) throw new Error('No data rows');
 
-        // Check optional columns
-        OPTIONAL_COLUMNS.forEach(col => {
-            if (foundColumns.includes(col)) {
-                result.columns.optional.push(col);
-            }
-        });
+                updateProgress('Extracting columns...', 30);
 
-        // Unknown columns
-        foundColumns.forEach(col => {
-            if (!REQUIRED_COLUMNS.includes(col) && !OPTIONAL_COLUMNS.includes(col)) {
-                result.columns.unknown.push(col);
-            }
-        });
-
-        if (sheetName !== 'Cost Code Detail Report') {
-            result.warnings.push(`Sheet "${sheetName}" used instead of "Cost Code Detail Report"`);
+        const headerRowNum = range.s.r + 1;
+        const allHeaders = [];
+        const colLetters = [];
+        for (let c = range.s.c; c <= range.e.c; c++) {
+            const cl = XLSX.utils.encode_col(c);
+            colLetters.push(cl);
+            const cell = sheet[cl + headerRowNum];
+            allHeaders.push(cell && cell.v != null ? String(cell.v).split(/\s+/).join(' ').trim() : '');
         }
 
-        // Sample-based validation (check first 1000 rows instead of all 186K)
-        const sampleSize = Math.min(1000, data.rowCount);
-        let invalidDates = 0;
-        let invalidAmounts = 0;
+        const neededCols = [], neededPrefixes = [];
+        for (let c = 0; c < allHeaders.length; c++) {
+            if (KEEP_COLUMNS.has(allHeaders[c])) {
+                neededCols.push(allHeaders[c]);
+                neededPrefixes.push(colLetters[c]);
+            }
+        }
 
-        const dates = data.columns['G/L Date'];
-        const amounts = data.columns['Actual Amount'];
+        const columns = {};
+        for (const n of neededCols) columns[n] = new Array(totalRows);
 
-        if (dates && amounts) {
-            for (let i = 0; i < sampleSize; i++) {
-                const date = dates[i];
-                if (date && !(date instanceof Date) && isNaN(Date.parse(date))) {
-                    invalidDates++;
+        const dataRowStart = headerRowNum + 1;
+        const numCols = neededCols.length;
+        for (let r = 0; r < totalRows; r++) {
+            const rn = dataRowStart + r;
+            for (let j = 0; j < numCols; j++) {
+                const cell = sheet[neededPrefixes[j] + rn];
+                columns[neededCols[j]][r] = cell ? (cell.v !== undefined ? cell.v : (cell.w || '')) : '';
+            }
+        }
+
+        for (const sn of Object.keys(workbook.Sheets)) workbook.Sheets[sn] = null;
+
+        parsedData = { columns, rowCount: totalRows, allColumns: allHeaders.filter(h => h) };
+        validationResult = validateDataFast(parsedData, sheetName);
+
+        const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+        console.log(`SheetJS parse completed in ${elapsed}s for ${totalRows.toLocaleString()} rows`);
+        showValidationResults();
+    }
+
+    function repairSheetRef(sheet) {
+        let maxR = 0, maxC = 0, found = false;
+        for (const k of Object.keys(sheet)) {
+            if (k.charCodeAt(0) === 33) continue;
+            try { const c = XLSX.utils.decode_cell(k); if (c.r > maxR) maxR = c.r; if (c.c > maxC) maxC = c.c; found = true; } catch (_) {}
+        }
+        if (!found) throw new Error('Sheet is empty');
+        sheet['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: maxR, c: maxC } });
+    }
+
+    // ──────────────────────────────────────────────────────
+    //  PATH B: Streaming parser (files ≥ 30 MB)
+    //  Uses DecompressionStream to decompress the ZIP entries
+    //  and a simple state-machine XML parser to extract rows
+    //  one at a time. Peak memory ≈ shared-strings table +
+    //  the columnar output arrays. No 670 MB XML string.
+    // ──────────────────────────────────────────────────────
+
+    async function parseFileStreaming(file, startTime, fileMB) {
+        try {
+            // 1. Read ZIP central directory
+            updateProgress('Reading ZIP structure...', 2);
+            const entries = await zipReadEntries(file);
+
+            const ssEntry = entries.find(e => e.name === 'xl/sharedStrings.xml');
+            const sheetEntry = entries.find(e => /^xl\/worksheets\/sheet\d+\.xml$/i.test(e.name));
+            if (!sheetEntry) throw new Error('No worksheet found inside xlsx');
+
+            // 2. Parse shared strings (small — 2-3 MB)
+            updateProgress('Parsing shared strings...', 5);
+            let sharedStrings = [];
+            if (ssEntry) {
+                const ssXml = await zipDecompressToString(file, ssEntry);
+                sharedStrings = xmlParseSharedStrings(ssXml);
+                console.log(`Shared strings: ${sharedStrings.length.toLocaleString()} unique values`);
+            }
+
+            // 3. Stream-parse the sheet XML
+            updateProgress('Starting row streaming...', 8);
+            const result = await streamParseSheet(
+                file, sheetEntry, sharedStrings,
+                (text, pct) => updateProgress(text, pct)
+            );
+
+            // 4. Done
+            parsedData = result;
+            validationResult = validateDataFast(parsedData, 'Cost Code Detail Report');
+
+            const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+            console.log(`Streaming parse completed in ${elapsed}s for ${result.rowCount.toLocaleString()} rows`);
+            showValidationResults();
+
+        } catch (err) {
+            console.error('Streaming parse error:', err);
+            showSection('dropzone');
+            alert('Error parsing file: ' + err.message);
+        }
+    }
+
+    // ── ZIP helpers ──────────────────────────────────────
+
+    /** Read ZIP central directory entries from a File/Blob. */
+    async function zipReadEntries(file) {
+        // Read last 64 KB to find End-of-Central-Directory record
+        const tailSize = Math.min(file.size, 65557);
+        const tail = new Uint8Array(await file.slice(file.size - tailSize).arrayBuffer());
+
+        // Search backwards for EOCD signature 0x06054b50
+        let eocd = -1;
+        for (let i = tail.length - 22; i >= 0; i--) {
+            if (tail[i] === 0x50 && tail[i + 1] === 0x4b && tail[i + 2] === 0x05 && tail[i + 3] === 0x06) {
+                eocd = i; break;
+            }
+        }
+        if (eocd === -1) throw new Error('Invalid ZIP (no EOCD)');
+
+        const dv = new DataView(tail.buffer, tail.byteOffset + eocd);
+        const cdCount = dv.getUint16(10, true);
+        const cdSize  = dv.getUint32(12, true);
+        const cdOff   = dv.getUint32(16, true);
+
+        // Read central directory
+        const cd = new Uint8Array(await file.slice(cdOff, cdOff + cdSize).arrayBuffer());
+        const cdv = new DataView(cd.buffer, cd.byteOffset);
+        const dec = new TextDecoder();
+        const entries = [];
+        let p = 0;
+
+        for (let i = 0; i < cdCount; i++) {
+            if (cd[p] !== 0x50 || cd[p + 1] !== 0x4b || cd[p + 2] !== 0x01 || cd[p + 3] !== 0x02) break;
+            const method   = cdv.getUint16(p + 10, true);
+            const cSize    = cdv.getUint32(p + 20, true);
+            const uSize    = cdv.getUint32(p + 24, true);
+            const nameLen  = cdv.getUint16(p + 28, true);
+            const extraLen = cdv.getUint16(p + 30, true);
+            const cmtLen   = cdv.getUint16(p + 32, true);
+            const lhOff    = cdv.getUint32(p + 42, true);
+            const name     = dec.decode(cd.slice(p + 46, p + 46 + nameLen));
+            entries.push({ name, method, cSize, uSize, lhOff });
+            p += 46 + nameLen + extraLen + cmtLen;
+        }
+
+        // Resolve each entry's data-start offset from its local header
+        for (const e of entries) {
+            const lh = new DataView(await file.slice(e.lhOff, e.lhOff + 30).arrayBuffer());
+            const lhNameLen  = lh.getUint16(26, true);
+            const lhExtraLen = lh.getUint16(28, true);
+            e.dataOff = e.lhOff + 30 + lhNameLen + lhExtraLen;
+        }
+        return entries;
+    }
+
+    /** Decompress a ZIP entry fully and return as string (for small files). */
+    async function zipDecompressToString(file, entry) {
+        const blob = file.slice(entry.dataOff, entry.dataOff + entry.cSize);
+        if (entry.method === 0) return new TextDecoder().decode(await blob.arrayBuffer());
+
+        const ds = new DecompressionStream('deflate-raw');
+        const reader = blob.stream().pipeThrough(ds).getReader();
+        const chunks = [];
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+        }
+        const total = chunks.reduce((s, c) => s + c.length, 0);
+        const buf = new Uint8Array(total);
+        let off = 0;
+        for (const c of chunks) { buf.set(c, off); off += c.length; }
+        return new TextDecoder().decode(buf);
+    }
+
+    // ── Shared-strings parser ───────────────────────────
+
+    function xmlParseSharedStrings(xml) {
+        const strings = [];
+        const siRe = /<si>([\s\S]*?)<\/si>/g;
+        const tRe  = /<t[^>]*>([\s\S]*?)<\/t>/g;
+        let m;
+        while ((m = siRe.exec(xml)) !== null) {
+            let text = '';
+            let tm;
+            tRe.lastIndex = 0;
+            while ((tm = tRe.exec(m[1])) !== null) text += tm[1];
+            strings.push(xmlDecode(text));
+        }
+        return strings;
+    }
+
+    function xmlDecode(s) {
+        return s.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+                .replace(/&quot;/g, '"').replace(/&apos;/g, "'");
+    }
+
+    // ── Excel date serial → JS Date ─────────────────────
+
+    function excelDateToJSDate(serial) {
+        if (typeof serial !== 'number' || serial < 1 || serial > 2958465) return serial;
+        // 25569 = days between 1900-01-01 and 1970-01-01,
+        // adjusted for Excel's 1900-leap-year bug
+        const dayMs = 86400000;
+        const adjust = serial > 60 ? 25568 : 25567; // bug: Excel thinks 1900 is leap
+        return new Date((serial - adjust) * dayMs);
+    }
+
+    // ── Streaming sheet XML parser ──────────────────────
+
+    /**
+     * Incrementally decompress + parse xl/worksheets/sheetN.xml.
+     * Keeps only the KEEP_COLUMNS in columnar arrays.
+     * Peak memory ≈ sharedStrings[] + output columns.
+     */
+    async function streamParseSheet(file, entry, sharedStrings, onProgress) {
+        const blob = file.slice(entry.dataOff, entry.dataOff + entry.cSize);
+        let stream;
+        if (entry.method === 0) {
+            stream = blob.stream();
+        } else {
+            stream = blob.stream().pipeThrough(new DecompressionStream('deflate-raw'));
+        }
+
+        const reader = stream.getReader();
+        const decoder = new TextDecoder();
+
+        let buf = '';             // rolling text buffer
+        let inSheetData = false;  // true once we pass <sheetData>
+        let headerDone = false;
+
+        // Column mapping  (populated from header row)
+        let colLetterToName = {}; // "A" → "Document Type"
+        let neededLetters = {};   // "G" → "G/L Date" (columns we keep)
+        let neededNames = [];     // ordered list of kept column names
+        let allHeaders = [];
+
+        // Output columnar storage
+        let columns = {};
+        let rowCount = 0;
+        let totalRows = 0;       // from <dimension>
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (value) buf += decoder.decode(value, { stream: !done });
+
+            // ─ Grab totalRows from <dimension ref="A1:AB640667"> ─
+            if (totalRows === 0 && !inSheetData) {
+                const dm = buf.match(/<dimension\s+ref="[A-Z]+\d+:([A-Z]+)(\d+)"/);
+                if (dm) totalRows = parseInt(dm[2]) - 1;
+            }
+
+            // ─ Wait for <sheetData> before processing rows ─
+            if (!inSheetData) {
+                const si = buf.indexOf('<sheetData');
+                if (si === -1) {
+                    // Discard prefix, keep tail for partial-tag safety
+                    if (buf.length > 500) buf = buf.slice(-300);
+                    if (done) break;
+                    continue;
                 }
+                inSheetData = true;
+                buf = buf.slice(si);
+            }
 
-                const amount = amounts[i];
-                if (amount !== '' && amount !== undefined && typeof amount !== 'number') {
-                    const parsed = parseFloat(String(amount).replace(AMOUNT_CLEAN_REGEX, ''));
-                    if (isNaN(parsed)) {
-                        invalidAmounts++;
+            // ─ Process every complete <row …>…</row> in the buffer ─
+            let consumed = 0;
+            while (true) {
+                const endTag = buf.indexOf('</row>', consumed);
+                if (endTag === -1) break;
+                const rowEndPos = endTag + 6;
+
+                // Find the <row that opens this </row>
+                const chunk = buf.slice(consumed, rowEndPos);
+                const rowOpen = chunk.lastIndexOf('<row ');
+                if (rowOpen === -1) { consumed = rowEndPos; continue; }
+
+                const rowXml = chunk.slice(rowOpen);
+                consumed = rowEndPos;
+
+                if (!headerDone) {
+                    // ── Parse header row ──
+                    const cells = extractCells(rowXml, sharedStrings);
+                    for (const [letter, val] of cells) {
+                        const clean = String(val).split(/\s+/).join(' ').trim();
+                        colLetterToName[letter] = clean;
+                        allHeaders.push(clean);
+                        if (KEEP_COLUMNS.has(clean)) {
+                            neededLetters[letter] = clean;
+                            neededNames.push(clean);
+                            columns[clean] = [];
+                        }
+                    }
+                    headerDone = true;
+                } else {
+                    // ── Parse data row (only needed columns) ──
+                    const vals = extractCells(rowXml, sharedStrings, neededLetters);
+                    for (const name of neededNames) {
+                        let v = vals.get(name);
+                        // Convert Excel date serials for date columns
+                        if (v !== undefined && DATE_COLUMNS.has(name) && typeof v === 'number') {
+                            v = excelDateToJSDate(v);
+                        }
+                        columns[name].push(v !== undefined ? v : '');
+                    }
+                    rowCount++;
+
+                    // Yield to UI every 10 000 rows
+                    if (rowCount % 10000 === 0) {
+                        const pct = totalRows > 0
+                            ? Math.round(8 + (rowCount / totalRows) * 82)
+                            : 50;
+                        onProgress(
+                            `Streaming rows: ${rowCount.toLocaleString()}` +
+                            (totalRows ? ` / ${totalRows.toLocaleString()}` : '') + '...',
+                            pct
+                        );
+                        await new Promise(r => setTimeout(r, 0));
                     }
                 }
             }
+
+            // Keep only the unprocessed tail
+            if (consumed > 0) buf = buf.slice(consumed);
+
+            // Stop once we've passed all sheet data
+            if (buf.includes('</sheetData>') || done) break;
         }
 
-        if (invalidDates > 0) {
-            const estimated = Math.round(invalidDates / sampleSize * data.rowCount);
-            result.warnings.push(`~${estimated.toLocaleString()} rows may have invalid dates (sampled ${sampleSize})`);
-        }
+        onProgress('Finalizing...', 92);
+        return { columns, rowCount, allColumns: allHeaders };
+    }
 
-        if (invalidAmounts > 0) {
-            const estimated = Math.round(invalidAmounts / sampleSize * data.rowCount);
-            result.warnings.push(`~${estimated.toLocaleString()} rows may have non-numeric amounts (sampled ${sampleSize})`);
-        }
+    /**
+     * Extract cells from a single <row …>…</row> XML fragment.
+     * @param {string}   rowXml        – the row XML
+     * @param {string[]} sharedStrings – shared-string table
+     * @param {Object}   [filter]      – if given, { colLetter: colName } — only extract these
+     * @returns {Map|Array}  Map(colName→value) if filter, else Array of [letter, value]
+     */
+    function extractCells(rowXml, sharedStrings, filter) {
+        const out = filter ? new Map() : [];
 
-        if (result.columns.unknown.length > 0) {
-            result.warnings.push(`${result.columns.unknown.length} unrecognized columns will be ignored`);
+        // Match each <c …>…</c> or <c …/>
+        const re = /<c\s([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g;
+        let m;
+        while ((m = re.exec(rowXml)) !== null) {
+            const attrs = m[1];
+            const body  = m[2] || '';
+
+            // Cell reference  e.g. r="AB640667"  →  letters="AB"
+            const rm = attrs.match(/r="([A-Z]+)\d+"/);
+            if (!rm) continue;
+            const letter = rm[1];
+
+            if (filter && !(letter in filter)) continue;
+
+            // Cell type
+            const tm = attrs.match(/t="([^"]*)"/);
+            const t  = tm ? tm[1] : '';
+
+            // Raw <v> value
+            const vm = body.match(/<v>([^<]*)<\/v>/);
+
+            let value = '';
+            if (t === 's' && vm) {
+                value = sharedStrings[parseInt(vm[1])] ?? '';
+            } else if (t === 'inlineStr') {
+                const im = body.match(/<t[^>]*>([^<]*)<\/t>/);
+                value = im ? xmlDecode(im[1]) : '';
+            } else if (vm) {
+                const n = parseFloat(vm[1]);
+                value = isNaN(n) ? xmlDecode(vm[1]) : n;
+            }
+
+            if (filter) {
+                out.set(filter[letter], value);
+            } else {
+                out.push([letter, value]);
+            }
         }
+        return out;
+    }
+
+    // ──────────────────────────────────────────────────────
+    //  Validation
+    // ──────────────────────────────────────────────────────
+
+    function validateDataFast(data, sheetName) {
+        const result = {
+            valid: true, errors: [], warnings: [],
+            columns: { required: [], optional: [], unknown: [], missing: [] },
+            rowCount: data.rowCount, sheetName
+        };
+        if (data.rowCount === 0) { result.valid = false; result.errors.push('No data found'); return result; }
+
+        const found = data.allColumns;
+        REQUIRED_COLUMNS.forEach(c => {
+            if (found.includes(c)) result.columns.required.push(c);
+            else { result.columns.missing.push(c); result.valid = false; result.errors.push(`Missing required column: ${c}`); }
+        });
+        OPTIONAL_COLUMNS.forEach(c => { if (found.includes(c)) result.columns.optional.push(c); });
+        found.forEach(c => { if (!REQUIRED_COLUMNS.includes(c) && !OPTIONAL_COLUMNS.includes(c)) result.columns.unknown.push(c); });
+
+        if (sheetName !== 'Cost Code Detail Report') result.warnings.push(`Sheet "${sheetName}" used`);
+
+        // Sample-based date/amount check
+        const sampleSize = Math.min(1000, data.rowCount);
+        let badDates = 0, badAmts = 0;
+        const dates = data.columns['G/L Date'], amts = data.columns['Actual Amount'];
+        if (dates && amts) {
+            for (let i = 0; i < sampleSize; i++) {
+                const d = dates[i];
+                if (d && !(d instanceof Date) && isNaN(Date.parse(d))) badDates++;
+                const a = amts[i];
+                if (a !== '' && a !== undefined && typeof a !== 'number') {
+                    if (isNaN(parseFloat(String(a).replace(AMOUNT_CLEAN_REGEX, '')))) badAmts++;
+                }
+            }
+        }
+        if (badDates > 0) result.warnings.push(`~${Math.round(badDates / sampleSize * data.rowCount).toLocaleString()} rows may have invalid dates`);
+        if (badAmts > 0) result.warnings.push(`~${Math.round(badAmts / sampleSize * data.rowCount).toLocaleString()} rows may have non-numeric amounts`);
+        if (result.columns.unknown.length > 0) result.warnings.push(`${result.columns.unknown.length} unrecognized columns ignored`);
+        if (data.rowCount > 300000) result.warnings.push(`Large dataset (${data.rowCount.toLocaleString()} rows) — import may take 15-45 s`);
 
         return result;
     }
 
-    /**
-     * Show validation results in UI
-     */
+    // ──────────────────────────────────────────────────────
+    //  Validation UI / Preview
+    // ──────────────────────────────────────────────────────
+
     function showValidationResults() {
         showSection('file');
-
         const iconEl = document.getElementById('importValidationIcon');
         const titleEl = document.getElementById('importValidationTitle');
 
@@ -414,86 +645,52 @@ const ImportModal = (function() {
 
         const issuesList = document.getElementById('importIssuesList');
         issuesList.innerHTML = '';
-
         validationResult.errors.forEach(err => {
-            issuesList.innerHTML += `
-                <li class="import-issue">
-                    <span class="import-issue-icon error">&#10005;</span>
-                    <span class="import-issue-text">${escapeHtml(err)}</span>
-                </li>
-            `;
+            issuesList.innerHTML += `<li class="import-issue"><span class="import-issue-icon error">&#10005;</span><span class="import-issue-text">${escapeHtml(err)}</span></li>`;
         });
-
-        validationResult.warnings.forEach(warn => {
-            issuesList.innerHTML += `
-                <li class="import-issue">
-                    <span class="import-issue-icon warning">&#9888;</span>
-                    <span class="import-issue-text">${escapeHtml(warn)}</span>
-                </li>
-            `;
+        validationResult.warnings.forEach(w => {
+            issuesList.innerHTML += `<li class="import-issue"><span class="import-issue-icon warning">&#9888;</span><span class="import-issue-text">${escapeHtml(w)}</span></li>`;
         });
 
         renderPreviewFast();
-
         updateFooterInfo(`${validationResult.rowCount.toLocaleString()} rows found in "${validationResult.sheetName}"`);
     }
 
-    /**
-     * Render column tags
-     */
-    function renderColumnTags(containerId, columns, type, append = false) {
-        const container = document.getElementById(containerId);
-        if (!append) container.innerHTML = '';
-
-        columns.forEach(col => {
-            container.innerHTML += `<span class="import-column-tag ${type}">${escapeHtml(col)}</span>`;
-        });
+    function renderColumnTags(containerId, cols, type, append) {
+        const el = document.getElementById(containerId);
+        if (!append) el.innerHTML = '';
+        cols.forEach(c => { el.innerHTML += `<span class="import-column-tag ${type}">${escapeHtml(c)}</span>`; });
     }
 
-    /**
-     * Render data preview table - optimized for columnar data
-     */
     function renderPreviewFast() {
         if (!parsedData || parsedData.rowCount === 0) return;
-
-        const columns = REQUIRED_COLUMNS.filter(c => validationResult.columns.required.includes(c));
-        const previewCount = Math.min(5, parsedData.rowCount);
-
-        const headEl = document.getElementById('importPreviewHead');
-        const bodyEl = document.getElementById('importPreviewBody');
-
-        headEl.innerHTML = '<tr>' + columns.map(c => `<th>${escapeHtml(c)}</th>`).join('') + '</tr>';
-
-        let bodyHtml = '';
-        for (let i = 0; i < previewCount; i++) {
-            bodyHtml += '<tr>';
-            for (const col of columns) {
-                const value = parsedData.columns[col]?.[i] ?? '';
-                bodyHtml += `<td>${escapeHtml(String(value))}</td>`;
-            }
-            bodyHtml += '</tr>';
+        const cols = REQUIRED_COLUMNS.filter(c => validationResult.columns.required.includes(c));
+        const n = Math.min(5, parsedData.rowCount);
+        document.getElementById('importPreviewHead').innerHTML =
+            '<tr>' + cols.map(c => `<th>${escapeHtml(c)}</th>`).join('') + '</tr>';
+        let body = '';
+        for (let i = 0; i < n; i++) {
+            body += '<tr>' + cols.map(c => `<td>${escapeHtml(String(parsedData.columns[c]?.[i] ?? ''))}</td>`).join('') + '</tr>';
         }
-        bodyEl.innerHTML = bodyHtml;
-
+        document.getElementById('importPreviewBody').innerHTML = body;
         document.getElementById('importPreviewCount').textContent =
-            `Showing first ${previewCount} of ${parsedData.rowCount.toLocaleString()} rows`;
+            `Showing first ${n} of ${parsedData.rowCount.toLocaleString()} rows`;
     }
 
-    /**
-     * Process and import the data - optimized batch processing
-     */
+    // ──────────────────────────────────────────────────────
+    //  Import data processing (shared by both paths)
+    // ──────────────────────────────────────────────────────
+
     function importData() {
         if (!parsedData || !validationResult.valid) return;
-
         showSection('processing');
-        updateProgress('Processing data...', 0);
+        updateProgress('Preparing import...', 0);
 
         const startTime = performance.now();
         const totalRows = parsedData.rowCount;
-        const batchSize = 20000;
+        const batchSize = totalRows > 300000 ? 80000 : 20000;
         let currentRow = 0;
 
-        // Pre-extract column arrays for faster access
         const cols = parsedData.columns;
         const dates = cols['G/L Date'] || [];
         const amounts = cols['Actual Amount'] || [];
@@ -503,53 +700,41 @@ const ImportModal = (function() {
         const divNames = cols['Division Name'] || [];
         const jobTypes = cols['Job Type'] || [];
         const descriptions = cols['Description'] || [];
-        const actualUnits = cols['Actual Units'] || [];  // For manhours tracking
+        const actualUnits = cols['Actual Units'] || [];
+        // Additional filter columns
+        const jobStatuses = cols['Job Status'] || [];
+        const jobGroupings = cols['Job Groupings'] || [];
+        const divNums = cols['Div #'] || [];
+        const batchTypes = cols['Batch Type'] || [];
+        const docCompanies = cols['Document Company'] || [];
+        const costCodes = cols['Cost Code'] || [];
+        const unitNumbers = cols['Unit Number'] || [];
 
-        // Pre-allocate result array (avoid push operations)
-        const processed = [];
-        processed.length = totalRows; // Pre-size
+        const processed = new Array(totalRows);
         let writeIdx = 0;
 
         function processBatch() {
-            const batchEnd = Math.min(currentRow + batchSize, totalRows);
+            const end = Math.min(currentRow + batchSize, totalRows);
+            for (let i = currentRow; i < end; i++) {
+                const dt = docTypes[i];
+                if (dt === 'Grand Total') continue;
 
-            for (let i = currentRow; i < batchEnd; i++) {
-                // Skip Grand Total rows
-                if (docTypes[i] === 'Grand Total') continue;
-
-                // Parse amount
                 let amount = amounts[i];
-                if (typeof amount === 'string') {
-                    amount = parseFloat(amount.replace(AMOUNT_CLEAN_REGEX, '')) || 0;
-                } else if (typeof amount !== 'number') {
-                    amount = 0;
-                }
+                if (typeof amount !== 'number') amount = typeof amount === 'string' ? (parseFloat(amount.replace(AMOUNT_CLEAN_REGEX, '')) || 0) : 0;
 
-                // Parse date (avoid timezone issues by using local date components)
                 let dateStr = dates[i];
                 if (dateStr instanceof Date) {
-                    // Use local date to avoid UTC shift
-                    const y = dateStr.getFullYear();
-                    const m = String(dateStr.getMonth() + 1).padStart(2, '0');
-                    const d = String(dateStr.getDate()).padStart(2, '0');
-                    dateStr = `${y}-${m}-${d}`;
+                    dateStr = `${dateStr.getFullYear()}-${String(dateStr.getMonth()+1).padStart(2,'0')}-${String(dateStr.getDate()).padStart(2,'0')}`;
                 } else if (dateStr) {
-                    const parsed = new Date(dateStr);
-                    if (!isNaN(parsed)) {
-                        const y = parsed.getFullYear();
-                        const m = String(parsed.getMonth() + 1).padStart(2, '0');
-                        const d = String(parsed.getDate()).padStart(2, '0');
-                        dateStr = `${y}-${m}-${d}`;
-                    }
+                    const p = new Date(dateStr);
+                    if (!isNaN(p)) dateStr = `${p.getFullYear()}-${String(p.getMonth()+1).padStart(2,'0')}-${String(p.getDate()).padStart(2,'0')}`;
                 }
 
-                // Get cost type code
                 const costType = costTypes[i] || '';
-                const costTypeStr = String(costType);
-                const codeEnd = costTypeStr.indexOf(COST_CODE_SPLIT);
-                const code = codeEnd > 0 ? costTypeStr.substring(0, codeEnd).trim() : costTypeStr.trim();
+                const ctStr = String(costType);
+                const ce = ctStr.indexOf(COST_CODE_SPLIT);
+                const code = ce > 0 ? ctStr.substring(0, ce).trim() : ctStr.trim();
 
-                // Categorize (inlined for speed)
                 let category;
                 if (code.startsWith('61')) category = 'Labor Costs';
                 else if (code.startsWith('62')) category = 'Travel & Per Diem';
@@ -562,221 +747,130 @@ const ImportModal = (function() {
                 else if (code.startsWith('73') || code.startsWith('74') || code.startsWith('75')) category = 'G&A & Other';
                 else category = 'Other';
 
-                // Department extraction
                 const job = jobs[i];
                 let deptCode = '';
-                if (job !== null && job !== undefined && job !== '') {
-                    const jobNum = typeof job === 'number' ? Math.floor(job) : parseInt(job, 10);
-                    if (!isNaN(jobNum)) {
-                        const jobStr = String(jobNum);
-                        deptCode = jobStr.slice(-3);
-                    }
+                if (job != null && job !== '') {
+                    const jn = typeof job === 'number' ? Math.floor(job) : parseInt(job, 10);
+                    if (!isNaN(jn)) deptCode = String(jn).slice(-3);
                 }
-
-                const deptName = DEPARTMENT_MAP[deptCode];
-                const department = deptName ? `${deptCode} - ${deptName}` : (deptCode ? `Unknown (${deptCode})` : 'Unknown');
+                const dn = DEPARTMENT_MAP[deptCode];
+                const department = dn ? `${deptCode} - ${dn}` : (deptCode ? `Unknown (${deptCode})` : 'Unknown');
                 const deptCategory = DEPARTMENT_CATEGORY_MAP[deptCode] || 'Other';
 
-                // Parse actual units (for manhours)
                 let units = actualUnits[i];
-                if (typeof units === 'string') {
-                    units = parseFloat(units.replace(AMOUNT_CLEAN_REGEX, '')) || 0;
-                } else if (typeof units !== 'number') {
-                    units = 0;
-                }
+                if (typeof units !== 'number') units = typeof units === 'string' ? (parseFloat(units.replace(AMOUNT_CLEAN_REGEX, '')) || 0) : 0;
 
-                // Build row object (ensure consistent types with PapaParse output)
                 processed[writeIdx++] = {
-                    'G/L Date': dateStr || '',
-                    'Division Name': String(divNames[i] || ''),
-                    'Job': jobs[i],  // Keep as number for PapaParse compatibility
-                    'Job Type': String(jobTypes[i] || ''),
-                    'Cost Type': costType,
-                    'Actual Amount': amount,
-                    'Actual Units': units,  // For manhours tracking (T1-T4 doc types)
-                    'Document Type': String(docTypes[i] || ''),
-                    'Description': String(descriptions[i] || ''),
-                    'Category': category,
-                    'Is_Allocation': code.startsWith('693'),
-                    'Department': department,
-                    'Dept_Category': deptCategory
+                    'G/L Date': dateStr || '', 'Division Name': String(divNames[i] || ''),
+                    'Job': job, 'Job Type': String(jobTypes[i] || ''), 'Cost Type': costType,
+                    'Actual Amount': amount, 'Actual Units': units, 'Document Type': String(dt || ''),
+                    'Description': String(descriptions[i] || ''), 'Category': category,
+                    'Is_Allocation': code.startsWith('693'), 'Department': department, 'Dept_Category': deptCategory,
+                    // Additional filter columns
+                    'Job Status': String(jobStatuses[i] || ''), 'Job Groupings': String(jobGroupings[i] || ''),
+                    'Div #': String(divNums[i] || ''), 'Batch Type': String(batchTypes[i] || ''),
+                    'Document Company': String(docCompanies[i] || ''), 'Cost Code': String(costCodes[i] || ''),
+                    'Unit Number': String(unitNumbers[i] || '')
                 };
             }
-
-            currentRow = batchEnd;
+            currentRow = end;
             const pct = Math.round((currentRow / totalRows) * 100);
-            updateProgress(`Processing rows (${pct}%)...`, pct);
-
-            if (currentRow < totalRows) {
-                // Yield to UI, continue next batch
-                requestAnimationFrame(processBatch);
-            } else {
-                // Done - trim array to actual size
-                processed.length = writeIdx;
-                finishImport(processed, startTime);
-            }
+            updateProgress(`Processing rows... ${currentRow.toLocaleString()} / ${totalRows.toLocaleString()} (${pct}%)`, pct);
+            if (currentRow < totalRows) setTimeout(processBatch, 0);
+            else { processed.length = writeIdx; parsedData = null; finishImport(processed, startTime); }
         }
-
-        // Start batch processing
-        requestAnimationFrame(processBatch);
+        setTimeout(processBatch, 0);
     }
 
-    /**
-     * Finish import after processing
-     */
     function finishImport(processed, startTime) {
-        // Update global data
+        updateProgress('Updating dashboard...', 95);
         rawData = processed;
-        filteredData = [...rawData];
-
-        // Clear any existing filters (important: must match new data's values)
-        filters = {
-            startDate: null,
-            endDate: null,
-            jobType: 'all',
-            divisions: [],
-            departments: [],
-            deptCategories: [],
-            docTypes: []
-        };
-
-        // Reset cached metrics
+        filteredData = rawData;
+        filters = { startDate: null, endDate: null, jobType: 'all', deptCategories: [] };
+        MULTISELECT_FILTERS.forEach(f => { filters[f.key] = []; });
         cachedMetrics = null;
 
-        // Reset UI state for filters
         document.getElementById('startDate').value = '';
         document.getElementById('endDate').value = '';
-        document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.chip-toggle').forEach(chip => chip.classList.remove('active'));
-        const jobToggle = document.getElementById('jobTypeToggle');
-        if (jobToggle) {
-            jobToggle.querySelectorAll('.pill-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.value === 'all');
-            });
-        }
+        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.chip-toggle').forEach(c => c.classList.remove('active'));
+        const jt = document.getElementById('jobTypeToggle');
+        if (jt) jt.querySelectorAll('.pill-btn').forEach(b => b.classList.toggle('active', b.dataset.value === 'all'));
 
-        // Repopulate filter options from new data (don't re-setup event listeners)
         repopulateFilterOptions();
         updateMultiselectTriggers();
         updateDashboard();
 
         const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
         console.log(`Import completed in ${elapsed}s for ${processed.length.toLocaleString()} rows`);
-
-        // Show success
         showSection('success');
-        document.getElementById('importSuccessSubtitle').textContent =
-            `${processed.length.toLocaleString()} records loaded in ${elapsed}s`;
-
-        updateFooterInfo('Data imported - dashboard updated');
-
-        // Close modal after delay
-        setTimeout(() => {
-            ModalManager.close('importModal');
-        }, 2000);
+        document.getElementById('importSuccessSubtitle').textContent = `${processed.length.toLocaleString()} records loaded in ${elapsed}s`;
+        updateFooterInfo('Data imported — dashboard updated');
+        setTimeout(() => ModalManager.close('importModal'), 2000);
     }
 
-    /**
-     * Repopulate filter options without re-adding event listeners
-     * (used after import to refresh options from new data)
-     */
     function repopulateFilterOptions() {
-        const divisions = [...new Set(rawData.map(r => r['Division Name']).filter(Boolean))].sort();
-        const departments = [...new Set(rawData.map(r => r['Department']).filter(Boolean))].sort();
-        const deptCategories = [...new Set(rawData.map(r => r['Dept_Category']).filter(Boolean))].sort();
-        const docTypes = [...new Set(rawData.map(r => r['Document Type']).filter(Boolean))].sort();
+        // Single-pass extraction using MULTISELECT_FILTERS config
+        const fields = MULTISELECT_FILTERS.map(f => f.field);
+        const numF = fields.length;
+        const sets = [];
+        for (let j = 0; j < numF; j++) sets.push(new Set());
+        const deptCatSet = new Set();
 
-        // Update totals
-        filterTotals.divisions = divisions.length;
-        filterTotals.departments = departments.length;
-        filterTotals.deptCategories = deptCategories.length;
-        filterTotals.docTypes = docTypes.length;
-
-        // Repopulate multiselect options
-        populateMultiselect(document.getElementById('divisionOptions'), divisions, 'divisions');
-        populateMultiselect(document.getElementById('departmentOptions'), departments, 'departments');
-        populateMultiselect(document.getElementById('docTypeOptions'), docTypes, 'docTypes');
-
-        // Repopulate dept category chips
-        const chipsContainer = document.getElementById('deptCategoryChips');
-        if (chipsContainer) {
-            chipsContainer.innerHTML = deptCategories.map(cat => `
-                <button class="chip-toggle" data-value="${escapeHtml(cat)}">${escapeHtml(cat)}</button>
-            `).join('');
+        const len = rawData.length;
+        for (let i = 0; i < len; i++) {
+            const r = rawData[i];
+            for (let j = 0; j < numF; j++) {
+                const v = r[fields[j]];
+                if (v != null && v !== '') sets[j].add(String(v));
+            }
+            if (r['Dept_Category']) deptCatSet.add(r['Dept_Category']);
         }
+
+        for (let j = 0; j < numF; j++) {
+            const f = MULTISELECT_FILTERS[j];
+            const values = Array.from(sets[j]).sort();
+            filterTotals[f.key] = values.length;
+            populateMultiselect(document.getElementById(f.id + 'Options'), values, f.key);
+        }
+
+        const deptCategories = Array.from(deptCatSet).sort();
+        filterTotals.deptCategories = deptCategories.length;
+        const cc = document.getElementById('deptCategoryChips');
+        if (cc) cc.innerHTML = deptCategories.map(c => `<button class="chip-toggle" data-value="${escapeHtml(c)}">${escapeHtml(c)}</button>`).join('');
     }
 
-    /**
-     * Format file size
-     */
-    function formatFileSize(bytes) {
-        if (bytes < 1024) return bytes + ' B';
-        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    function formatFileSize(b) {
+        if (b < 1024) return b + ' B';
+        if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+        return (b / 1048576).toFixed(1) + ' MB';
     }
 
-    /**
-     * Remove selected file
-     */
     function removeFile() {
-        resetState();
-        showSection('dropzone');
+        resetState(); showSection('dropzone');
         updateFooterInfo('Select an Excel file with Cost Code Detail Report data');
         document.getElementById('importSubmitBtn').disabled = true;
     }
 
-    /**
-     * Initialize event listeners
-     */
+    // ──────────────────────────────────────────────────────
+    //  Event listeners
+    // ──────────────────────────────────────────────────────
+
     function init() {
-        const dropzone = document.getElementById('importDropzone');
-        const fileInput = document.getElementById('importFileInput');
-        const browseLink = document.getElementById('importBrowseLink');
-
-        dropzone?.addEventListener('click', () => fileInput?.click());
-
-        browseLink?.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            fileInput?.click();
-        });
-
-        fileInput?.addEventListener('change', (e) => {
-            if (e.target.files?.length > 0) {
-                handleFileSelect(e.target.files[0]);
-            }
-        });
-
-        dropzone?.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropzone.classList.add('dragover');
-        });
-
-        dropzone?.addEventListener('dragleave', () => {
-            dropzone.classList.remove('dragover');
-        });
-
-        dropzone?.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropzone.classList.remove('dragover');
-            if (e.dataTransfer?.files?.length > 0) {
-                handleFileSelect(e.dataTransfer.files[0]);
-            }
-        });
-
+        const dz = document.getElementById('importDropzone');
+        const fi = document.getElementById('importFileInput');
+        const bl = document.getElementById('importBrowseLink');
+        dz?.addEventListener('click', () => fi?.click());
+        bl?.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); fi?.click(); });
+        fi?.addEventListener('change', e => { if (e.target.files?.length) handleFileSelect(e.target.files[0]); });
+        dz?.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+        dz?.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+        dz?.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('dragover'); if (e.dataTransfer?.files?.length) handleFileSelect(e.dataTransfer.files[0]); });
         document.getElementById('importFileRemove')?.addEventListener('click', removeFile);
-
-        document.getElementById('importCancelBtn')?.addEventListener('click', () => {
-            ModalManager.close('importModal');
-        });
-
+        document.getElementById('importCancelBtn')?.addEventListener('click', () => ModalManager.close('importModal'));
         document.getElementById('importSubmitBtn')?.addEventListener('click', importData);
-
         document.getElementById('headerImportBtn')?.addEventListener('click', open);
     }
 
-    return {
-        open,
-        init
-    };
+    return { open, init };
 })();

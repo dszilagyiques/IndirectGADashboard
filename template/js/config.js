@@ -38,6 +38,24 @@ const DEPT_CATEGORY_COLORS = {
 const MANHOUR_DOC_TYPES = ['T2', 'JE'];
 const MANHOUR_COST_PREFIX = '511';  // Only count manhours from 511* cost types
 
+// ── Multiselect filter configuration ──
+// Drives: state init, HTML setup, single-pass extraction, filter application, pills
+const MULTISELECT_FILTERS = [
+    { key: 'divisions',      field: 'Division Name',    label: 'Division',  id: 'division' },
+    { key: 'departments',    field: 'Department',       label: 'Dept',      id: 'department' },
+    { key: 'docTypes',       field: 'Document Type',    label: 'Doc Type',  id: 'docType' },
+    { key: 'jobStatuses',    field: 'Job Status',       label: 'Status',    id: 'jobStatus' },
+    { key: 'jobGroupings',   field: 'Job Groupings',    label: 'Job Grp',   id: 'jobGrouping' },
+    { key: 'divNums',        field: 'Div #',            label: 'Div #',     id: 'divNum' },
+    { key: 'docCompanies',   field: 'Document Company', label: 'Company',   id: 'docCompany' },
+    { key: 'batchTypes',     field: 'Batch Type',       label: 'Batch',     id: 'batchType' },
+    { key: 'costTypeValues', field: 'Cost Type',        label: 'Cost Type', id: 'costTypeVal' },
+    { key: 'costCodes',      field: 'Cost Code',        label: 'Cost Code', id: 'costCode' },
+    { key: 'jobNumbers',     field: 'Job',              label: 'Job #',     id: 'jobNum' },
+    { key: 'descriptions',   field: 'Description',      label: 'Desc',      id: 'desc' },
+    { key: 'unitNumbers',    field: 'Unit Number',      label: 'Unit #',    id: 'unitNum' },
+];
+
 // Unified chart configuration defaults
 const CHART_DEFAULTS = {
     responsive: true,

@@ -1,15 +1,10 @@
-// === FILTER LOGIC ===
+// === FILTER LOGIC (config-driven) ===
 
 // Cached metrics for performance
 let cachedMetrics = null;
 
 // Filter dimension totals for display
-let filterTotals = {
-    divisions: 0,
-    departments: 0,
-    deptCategories: 0,
-    docTypes: 0
-};
+let filterTotals = {};
 
 // Debounce utility for auto-apply filters
 let filterDebounceTimer = null;
@@ -19,7 +14,7 @@ function debouncedApplyFilters() {
     filterDebounceTimer = setTimeout(() => {
         applyFilters();
         showFilterLoading(false);
-    }, 150); // Reduced from 300ms
+    }, 150);
 }
 
 function showFilterLoading(show) {
@@ -66,7 +61,6 @@ function applyDatePreset(preset) {
     document.getElementById('startDate').value = filters.startDate;
     document.getElementById('endDate').value = filters.endDate;
 
-    // Update active state on preset buttons
     document.querySelectorAll('.preset-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.preset === preset);
     });
@@ -77,22 +71,11 @@ function applyDatePreset(preset) {
 // Single-pass aggregation for all metrics
 function computeAllMetrics(data) {
     const metrics = {
-        // KPIs
-        gross: 0,
-        alloc: 0,
-        gaTotal: 0,
-        inTotal: 0,
-        months: new Set(),
-        grossRecords: 0,
-        allocRecords: 0,
-        // Monthly aggregation
+        gross: 0, alloc: 0, gaTotal: 0, inTotal: 0,
+        months: new Set(), grossRecords: 0, allocRecords: 0,
         monthlyAgg: {},
-        // Explorer aggregations by dimension
-        byDivision: {},
-        byDeptCategory: {},
-        byDepartment: {},
-        byDocType: {},
-        byCostType: {}
+        byDivision: {}, byDeptCategory: {}, byDepartment: {},
+        byDocType: {}, byCostType: {}
     };
 
     const len = data.length;
@@ -110,21 +93,14 @@ function computeAllMetrics(data) {
         const docType = row['Document Type'] || 'Unknown';
         const costDesc = row['Description'] || 'Unknown';
 
-        // KPIs
-        if (isAlloc) {
-            metrics.alloc += amt;
-            metrics.allocRecords++;
-        } else {
-            metrics.gross += amt;
-            metrics.grossRecords++;
-        }
+        if (isAlloc) { metrics.alloc += amt; metrics.allocRecords++; }
+        else { metrics.gross += amt; metrics.grossRecords++; }
 
         if (jobType === 'GA') metrics.gaTotal += amt;
         else if (jobType === 'IN') metrics.inTotal += amt;
 
         if (month) metrics.months.add(month);
 
-        // Monthly aggregation
         if (month) {
             if (!metrics.monthlyAgg[month]) {
                 metrics.monthlyAgg[month] = {
@@ -138,7 +114,6 @@ function computeAllMetrics(data) {
             if (jobType === 'GA') ma.ga += amt;
             else if (jobType === 'IN') ma.in += amt;
 
-            // Manhours for T2/JE with 511* cost types only
             if (typeof MANHOUR_DOC_TYPES !== 'undefined' && MANHOUR_DOC_TYPES.includes(docType) &&
                 typeof MANHOUR_COST_PREFIX !== 'undefined' && ct.startsWith(MANHOUR_COST_PREFIX)) {
                 ma.manhours += Math.abs(row['Actual Units'] || 0);
@@ -151,7 +126,6 @@ function computeAllMetrics(data) {
             }
         }
 
-        // Explorer aggregations (exclude alloc for most)
         if (!isAlloc) {
             if (!metrics.byDivision[divName]) metrics.byDivision[divName] = { amount: 0, count: 0 };
             metrics.byDivision[divName].amount += amt;
@@ -166,7 +140,6 @@ function computeAllMetrics(data) {
             metrics.byCostType[costDesc].count++;
         }
 
-        // These include allocations
         if (!metrics.byDeptCategory[deptCat]) metrics.byDeptCategory[deptCat] = { amount: 0, count: 0 };
         metrics.byDeptCategory[deptCat].amount += amt;
         metrics.byDeptCategory[deptCat].count++;
@@ -179,68 +152,82 @@ function computeAllMetrics(data) {
         metrics.byDocType[docTypeLabel].count++;
     }
 
-    // Compute derived KPIs
     const net = metrics.gross + metrics.alloc;
     const total = metrics.gaTotal + metrics.inTotal;
     const monthCount = metrics.months.size || 1;
 
     metrics.kpis = {
-        gross: metrics.gross,
-        alloc: metrics.alloc,
-        net: net,
+        gross: metrics.gross, alloc: metrics.alloc, net: net,
         recoveryPct: metrics.gross !== 0 ? Math.abs(metrics.alloc / metrics.gross * 100) : 0,
         gaPct: total !== 0 ? (metrics.gaTotal / total * 100) : 0,
         inPct: total !== 0 ? (metrics.inTotal / total * 100) : 0,
-        monthlyAvg: net / monthCount,
-        monthCount: monthCount,
-        grossRecords: metrics.grossRecords,
-        allocRecords: metrics.allocRecords
+        monthlyAvg: net / monthCount, monthCount: monthCount,
+        grossRecords: metrics.grossRecords, allocRecords: metrics.allocRecords
     };
 
     return metrics;
 }
 
+/**
+ * Apply all active filters — config-driven, highly optimized.
+ * Only builds Sets for filters that actually have selections.
+ */
 function applyFilters() {
-    // Fast filter using optimized loop
     const result = [];
     const len = rawData.length;
+
+    // Scalar filters
     const hasDateStart = !!filters.startDate;
     const hasDateEnd = !!filters.endDate;
     const hasJobType = filters.jobType !== 'all';
-    const hasDivisions = filters.divisions.length > 0;
-    const hasDepartments = filters.departments.length > 0;
     const hasDeptCats = filters.deptCategories.length > 0;
-    const hasDocTypes = filters.docTypes.length > 0;
-
-    // Convert arrays to Sets for O(1) lookup
-    const divSet = hasDivisions ? new Set(filters.divisions) : null;
-    const deptSet = hasDepartments ? new Set(filters.departments) : null;
     const deptCatSet = hasDeptCats ? new Set(filters.deptCategories) : null;
-    const docTypeSet = hasDocTypes ? new Set(filters.docTypes) : null;
+
+    // Build active multiselect filter Sets (only for filters with selections)
+    const activeSets = [];
+    const activeFields = [];
+    for (let i = 0; i < MULTISELECT_FILTERS.length; i++) {
+        const f = MULTISELECT_FILTERS[i];
+        if (filters[f.key].length > 0) {
+            activeSets.push(new Set(filters[f.key]));
+            activeFields.push(f.field);
+        }
+    }
+    const numActive = activeSets.length;
 
     for (let i = 0; i < len; i++) {
         const row = rawData[i];
         if (hasDateStart && row['G/L Date'] < filters.startDate) continue;
         if (hasDateEnd && row['G/L Date'] > filters.endDate) continue;
         if (hasJobType && row['Job Type'] !== filters.jobType) continue;
-        if (hasDivisions && !divSet.has(row['Division Name'])) continue;
-        if (hasDepartments && !deptSet.has(row['Department'])) continue;
         if (hasDeptCats && !deptCatSet.has(row['Dept_Category'])) continue;
-        if (hasDocTypes && !docTypeSet.has(row['Document Type'])) continue;
+
+        // Check all active multiselect filters
+        if (numActive > 0) {
+            let skip = false;
+            for (let j = 0; j < numActive; j++) {
+                if (!activeSets[j].has(row[activeFields[j]])) { skip = true; break; }
+            }
+            if (skip) continue;
+        }
+
         result.push(row);
     }
 
     filteredData = result;
-
-    // Compute all metrics in single pass
     cachedMetrics = computeAllMetrics(filteredData);
-
     updateDashboard();
     updateFilterPills();
 }
 
 function clearFilters() {
-    filters = { startDate: null, endDate: null, jobType: 'all', divisions: [], departments: [], deptCategories: [], docTypes: [] };
+    filters.startDate = null;
+    filters.endDate = null;
+    filters.jobType = 'all';
+    filters.deptCategories = [];
+
+    // Clear all multiselect filters
+    MULTISELECT_FILTERS.forEach(f => { filters[f.key] = []; });
 
     // Date inputs
     document.getElementById('startDate').value = '';
@@ -258,9 +245,8 @@ function clearFilters() {
     // Dept category chips
     document.querySelectorAll('.chip-toggle').forEach(chip => chip.classList.remove('active'));
 
-    // Multiselect checkboxes
-    document.querySelectorAll('.multiselect-options input[type="checkbox"]').forEach(cb => cb.checked = false);
-    document.querySelectorAll('.mini-options input[type="checkbox"]').forEach(cb => cb.checked = false);
+    // All multiselect checkboxes
+    document.querySelectorAll('.multiselect-options input[type="checkbox"], .mini-options input[type="checkbox"]').forEach(cb => cb.checked = false);
 
     updateMultiselectTriggers();
     applyFilters();
@@ -287,42 +273,47 @@ function updateFilterPills() {
         });
     }
     if (filters.jobType !== 'all') {
-        addPill(`Type: ${filters.jobType}`, () => { filters.jobType = 'all'; document.getElementById('jobTypeFilter').value = 'all'; applyFilters(); });
+        addPill(`Type: ${filters.jobType}`, () => { filters.jobType = 'all'; applyFilters(); });
     }
-    if (filters.divisions.length > 0) addPill(`${filters.divisions.length} divisions`, () => { filters.divisions = []; syncMultiselectCheckboxes('divisionOptions', []); updateMultiselectTriggers(); applyFilters(); });
-    if (filters.departments.length > 0) addPill(`${filters.departments.length} depts`, () => { filters.departments = []; syncMultiselectCheckboxes('departmentOptions', []); updateMultiselectTriggers(); applyFilters(); });
-    if (filters.deptCategories.length > 0) addPill(`${filters.deptCategories.length} dept cats`, () => {
-        filters.deptCategories = [];
-        document.querySelectorAll('.chip-toggle').forEach(chip => chip.classList.remove('active'));
-        applyFilters();
-    });
-    if (filters.docTypes.length > 0) addPill(`${filters.docTypes.length} doc types`, () => { filters.docTypes = []; syncMultiselectCheckboxes('docTypeOptions', []); updateMultiselectTriggers(); applyFilters(); });
+    if (filters.deptCategories.length > 0) {
+        addPill(`${filters.deptCategories.length} dept cats`, () => {
+            filters.deptCategories = [];
+            document.querySelectorAll('.chip-toggle').forEach(chip => chip.classList.remove('active'));
+            applyFilters();
+        });
+    }
+
+    // Config-driven pills for all multiselects
+    for (const f of MULTISELECT_FILTERS) {
+        if (filters[f.key].length > 0) {
+            addPill(`${filters[f.key].length} ${f.label.toLowerCase()}`, () => {
+                filters[f.key] = [];
+                syncMultiselectCheckboxes(f.id + 'Options', []);
+                updateMultiselectTriggers();
+                applyFilters();
+            });
+        }
+    }
 }
 
 function syncMultiselectCheckboxes(optionsId, values) {
-    document.querySelectorAll(`#${optionsId} input[type="checkbox"]`).forEach(cb => cb.checked = values.includes(cb.value));
+    const el = document.getElementById(optionsId);
+    if (!el) return;
+    el.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = values.includes(cb.value));
 }
 
 function updateMultiselectTriggers() {
-    const update = (id, arr, totalKey) => {
-        const trigger = document.getElementById(id);
-        if (!trigger) return;
-        const count = arr.length;
-        const total = filterTotals[totalKey] || 0;
+    for (const f of MULTISELECT_FILTERS) {
+        const trigger = document.getElementById(f.id + 'Trigger');
+        if (!trigger) continue;
+        const count = filters[f.key].length;
+        const total = filterTotals[f.key] || 0;
         const span = trigger.querySelector('span');
         if (span) {
-            if (count === 0) {
-                span.textContent = 'All';
-            } else if (total > 0) {
-                span.textContent = `${count} of ${total}`;
-            } else {
-                span.textContent = `${count} sel`;
-            }
+            if (count === 0) span.textContent = 'All';
+            else if (total > 0) span.textContent = `${count} of ${total}`;
+            else span.textContent = `${count} sel`;
         }
         trigger.classList.toggle('has-selection', count > 0);
-    };
-    update('divisionTrigger', filters.divisions, 'divisions');
-    update('departmentTrigger', filters.departments, 'departments');
-    update('deptCategoryTrigger', filters.deptCategories, 'deptCategories');
-    update('docTypeTrigger', filters.docTypes, 'docTypes');
+    }
 }
